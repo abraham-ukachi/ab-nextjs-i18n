@@ -27,7 +27,7 @@ export function buildOpenAIMessages({ texts, from, to, glossary }) {
 const openaiProvider = {
   name: 'openai',
   batchSize: 40,
-  envKeys: ['OPENAI_API_KEY'],
+  envKeys: ['OPENAI_API_KEY', 'AB_I18N_OPENAI_MODEL'],
   isAvailable: (env) => Boolean(env.OPENAI_API_KEY),
 
   async translate({ texts, from, to, glossary, env, fetch, sleep }) {

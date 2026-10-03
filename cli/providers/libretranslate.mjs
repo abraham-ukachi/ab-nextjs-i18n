@@ -7,7 +7,7 @@ import { requestJson } from '../lib/http.mjs';
 const libreTranslateProvider = {
   name: 'libretranslate',
   batchSize: 25,
-  envKeys: ['LIBRETRANSLATE_URL'],
+  envKeys: ['LIBRETRANSLATE_URL', 'LIBRETRANSLATE_API_KEY'],
   isAvailable: (env) => Boolean(env.LIBRETRANSLATE_URL),
 
   async translate({ texts, from, to, env, fetch, sleep }) {

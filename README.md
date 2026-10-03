@@ -938,12 +938,17 @@ Bring your own provider with `--provider ./my-provider.mjs` (comma lists are fal
 export default {
   name: 'my-provider',
   batchSize: 25,
+  envKeys: ['MY_PROVIDER_KEY'], // the only env vars it receives (the first one enables it)
+  isAvailable: (env) => Boolean(env.MY_PROVIDER_KEY),
   async translate({ texts, from, to, glossary, env, fetch }) {
+    // env is { MY_PROVIDER_KEY } only: never the whole environment or other providers' keys
     // keep every <ph id="N"/> and tag; same length and order as `texts`
     return texts.map((text) => text);
   },
 };
 ```
+
+A provider only receives its own declared `envKeys` (a factory export gets `{ env }` from its static `envKeys`), and their values are redacted from errors and reports.
 
 
 ## CI

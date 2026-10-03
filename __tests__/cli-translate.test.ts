@@ -257,6 +257,59 @@ describe('providers (mocked fetch, no network)', () => {
     await expect(requestJson('https://api.example.com/x', {}, { fetch: always429, sleep: async () => {}, retries: 2 })).rejects.toThrow(/after 3 attempts/);
   });
 
+  it('gives each provider only its own declared envKeys (objects and factories)', async () => {
+    const env = { MY_KEY: 'mine', OPENAI_API_KEY: 'sk-other', DEEPL_API_KEY: 'other:fx', HOME: '/home/x' };
+    await writeFile(
+      join(dir, 'scoped.mjs'),
+      [
+        'export const seen = [];',
+        "export default { name: 'scoped', envKeys: ['MY_KEY'],",
+        '  isAvailable(env) { seen.push(Object.keys(env)); return Boolean(env.MY_KEY); },',
+        '  async translate({ texts, env }) { seen.push(Object.keys(env)); return texts.map(() => JSON.stringify(env)); } };',
+      ].join('\n'),
+    );
+    await writeFile(
+      join(dir, 'factory.mjs'),
+      [
+        'export const seen = [];',
+        'const factory = ({ env }) => { seen.push(Object.keys(env)); return { name: "factory", async translate({ texts }) { return texts; } }; };',
+        "factory.envKeys = ['MY_KEY'];",
+        'export default factory;',
+      ].join('\n'),
+    );
+    const [scoped] = await resolveProviders('./scoped.mjs', { cwd: dir, env });
+    expect(await scoped.translate({ texts: ['a'], from: 'en', to: 'fr', env } as any)).toEqual(['{"MY_KEY":"mine"}']);
+    const scopedModule = await import(join(dir, 'scoped.mjs'));
+    expect(scopedModule.seen).toEqual([['MY_KEY'], ['MY_KEY']]);
+
+    await resolveProviders('./factory.mjs', { cwd: dir, env });
+    expect((await import(join(dir, 'factory.mjs'))).seen).toEqual([['MY_KEY']]);
+
+    // No envKeys declared: no env at all.
+    await writeFile(join(dir, 'bare.mjs'), "export default { name: 'bare', async translate({ texts, env }) { return texts.map(() => String(Object.keys(env).length)); } };");
+    const [bare] = await resolveProviders('./bare.mjs', { cwd: dir, env });
+    expect(await bare.translate({ texts: ['a'], env } as any)).toEqual(['0']);
+    await writeFile(join(dir, 'bad.mjs'), "export default { envKeys: 'MY_KEY', async translate({ texts }) { return texts; } };");
+    await expect(resolveProviders('./bad.mjs', { cwd: dir, env })).rejects.toThrow(/envKeys must be an array/);
+
+    // Built-ins are scoped too: OpenAI sees its key and model, not DeepL's key.
+    let sentAuth = '';
+    const [openaiScoped] = await resolveProviders('openai', { cwd: dir, env: { ...env, AB_I18N_OPENAI_MODEL: 'm' } });
+    expect(openaiScoped.envKeys).toEqual(['OPENAI_API_KEY', 'AB_I18N_OPENAI_MODEL']);
+    await openaiScoped.translate({
+      texts: ['Hi'],
+      from: 'en',
+      to: 'fr',
+      env: { ...env, AB_I18N_OPENAI_MODEL: 'm' },
+      fetch: async (_url: string, init: any) => {
+        sentAuth = init.headers.Authorization;
+        expect(JSON.parse(init.body).model).toBe('m');
+        return jsonResponse(200, { choices: [{ message: { content: '{"translations":["Salut"]}' } }] });
+      },
+    } as any);
+    expect(sentAuth).toBe('Bearer sk-other');
+  });
+
   it('chains DeepL then OpenAI by default and needs at least one key', async () => {
     await expect(resolveProviders(undefined, { cwd: dir, env: {} })).rejects.toThrow(/DEEPL_API_KEY or OPENAI_API_KEY/);
     expect((await resolveProviders(undefined, { cwd: dir, env: { DEEPL_API_KEY: 'k', OPENAI_API_KEY: 'k' } })).map((p: any) => p.name)).toEqual(['deepl', 'openai']);
