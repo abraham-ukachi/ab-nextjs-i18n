@@ -14,7 +14,7 @@ type NextIntlClientProviderProps = ComponentProps<typeof NextIntlClientProvider>
 export type AbI18nProviderProps = NextIntlClientProviderProps & {
   /** Your `defineAbI18n` config (needed by `useAbLocaleSwitch`). */
   config: AbI18nConfig;
-  /** Only send these top-level namespaces to the client (e.g. `['Common', 'Language']`). */
+  /** Only send these top-level namespaces to the client (e.g. `['App']`). */
   namespaces?: readonly string[];
 };
 

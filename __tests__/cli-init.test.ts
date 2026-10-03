@@ -123,7 +123,7 @@ describe('ab-nextjs-i18n init', { timeout: 30_000 }, () => {
     expect(readFileSync(join(dir, 'src/i18n/config.ts'), 'utf8')).toContain("defaultLocale: 'de'");
     // the unknown source locale gets the English starters; other unknown locales start empty
     expect(Object.keys(JSON.parse(readFileSync(join(dir, 'locales/de.json'), 'utf8')))).toContain('App');
-    expect(JSON.parse(readFileSync(join(dir, 'locales/en.json'), 'utf8')).App.name).toBe('abElements');
+    expect(JSON.parse(readFileSync(join(dir, 'locales/en.json'), 'utf8')).App.greeting).toBe('Hello, {name}!');
   });
 
   it('rejects bad flags and refuses to run outside a Next app without --yes', async () => {

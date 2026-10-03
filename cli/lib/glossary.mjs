@@ -3,7 +3,7 @@
 // `messages/.ab-i18n-glossary.json`:
 // {
 //   "doNotTranslate": ["abElements", "Next.js"],   // masked before translation, allowed to stay identical
-//   "allowIdentical": ["App.name"],                // keys `check` won't warn about when identical to the source
+//   "allowIdentical": ["App.title"],               // keys `check` won't warn about when identical to the source
 //   "terms": { "fr": { "cart": "panier" } }        // preferred translations (sent to LLM providers)
 // }
 

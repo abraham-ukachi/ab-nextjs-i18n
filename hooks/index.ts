@@ -4,7 +4,7 @@
 
 import { useFormatter, useLocale, useMessages, useTranslations } from 'next-intl';
 
-/** `useTranslations` (next-intl): `const t = useAbTranslations('Common')`. */
+/** `useTranslations` (next-intl): `const t = useAbTranslations('App')`. */
 export const useAbTranslations = useTranslations;
 
 /** `useLocale` (next-intl): the current locale (typed via `AppConfig['Locale']`). */

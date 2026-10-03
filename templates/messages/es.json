@@ -1,46 +1,8 @@
 {
   "App": {
-    "name": "abElements",
-    "description": "Aplicaciones Next.js rápidas, atractivas y accesibles.",
-    "welcome": "¡Te damos la bienvenida a {name}!",
-    "greeting": "¡Hola, {name}!"
-  },
-  "Common": {
-    "loading": "Cargando…",
-    "save": "Guardar",
-    "cancel": "Cancelar",
-    "close": "Cerrar",
-    "back": "Atrás",
-    "next": "Siguiente",
-    "retry": "Reintentar",
-    "search": "Buscar",
-    "items": "{count, plural, =0 {Ningún elemento} one {# elemento} other {# elementos}}",
-    "learnMore": "Más información sobre <link>{name}</link>"
-  },
-  "Language": {
-    "label": "Idioma",
-    "select": "Elige un idioma",
-    "current": "Idioma actual: {language}",
-    "changed": "El idioma se ha cambiado a {language}.",
-    "en": "Inglés",
-    "fr": "Francés",
-    "es": "Español",
-    "ru": "Ruso"
-  },
-  "Theme": {
-    "label": "Tema",
-    "light": "Claro",
-    "dark": "Oscuro",
-    "system": "Sistema",
-    "changed": "El tema se ha cambiado a {theme}."
-  },
-  "NotFound": {
-    "title": "Página no encontrada",
-    "description": "Lo sentimos, no hemos encontrado la página que buscas.",
-    "backHome": "Volver al inicio"
-  },
-  "Metadata": {
-    "title": "abElements · Elementos de interfaz para Next.js",
-    "description": "Una colección ligera de elementos para aplicaciones Next.js, por Abraham Ukachi."
+    "title": "Te damos la bienvenida a abElements",
+    "greeting": "¡Hola, {name}!",
+    "items": "{count, plural, =0 {Todavía no hay elementos} one {# elemento} other {# elementos}}",
+    "learnMore": "Lee la <link>documentación</link> para añadir tus propios mensajes."
   }
 }

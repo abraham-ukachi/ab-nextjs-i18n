@@ -15,8 +15,8 @@ export { setRequestLocale as setAbRequestLocale } from 'next-intl/server';
 
 
 /**
- * `getTranslations` (next-intl): `getAbTranslations('Common')` or
- * `getAbTranslations({ locale, namespace: 'Metadata' })`.
+ * `getTranslations` (next-intl): `getAbTranslations('App')` or
+ * `getAbTranslations({ locale, namespace: 'App' })`.
  */
 export const getAbTranslations = getTranslations;
 

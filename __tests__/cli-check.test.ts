@@ -35,24 +35,24 @@ describe('ab-nextjs-i18n check', { timeout: 30_000 }, () => {
   });
 
   it('fails on a missing key', async () => {
-    await edit('fr', (m) => delete m.Common.save);
+    await edit('fr', (m) => delete m.App.title);
     const { code, report } = await check();
     expect(code).toBe(1);
-    expect(report.issues).toContainEqual(expect.objectContaining({ code: 'missing-key', locale: 'fr', key: 'Common.save', severity: 'error' }));
+    expect(report.issues).toContainEqual(expect.objectContaining({ code: 'missing-key', locale: 'fr', key: 'App.title', severity: 'error' }));
   });
 
-  it('fails on a placeholder mismatch (e.g. a translated {language})', async () => {
-    await edit('fr', (m) => (m.Language.changed = 'La langue a été changée en {langue}.'));
+  it('fails on a placeholder mismatch (e.g. a translated {name})', async () => {
+    await edit('fr', (m) => (m.App.greeting = 'Bonjour, {nom} !'));
     const { code, report } = await check();
     expect(code).toBe(1);
     const issue = report.issues.find((i: any) => i.code === 'placeholder-mismatch');
-    expect(issue).toMatchObject({ locale: 'fr', key: 'Language.changed' });
-    expect(issue.message).toMatch(/\{language\}/);
+    expect(issue).toMatchObject({ locale: 'fr', key: 'App.greeting' });
+    expect(issue.message).toMatch(/\{name\}/);
   });
 
   it('fails on a tag mismatch and on invalid ICU', async () => {
-    await edit('es', (m) => (m.Common.learnMore = 'Más información sobre {name}'));
-    await edit('ru', (m) => (m.Common.items = '{count, plural, one {# элемент}'));
+    await edit('es', (m) => (m.App.learnMore = 'Lee la documentación para añadir tus propios mensajes.'));
+    await edit('ru', (m) => (m.App.items = '{count, plural, one {# элемент}'));
     const { code, report } = await check();
     expect(code).toBe(1);
     expect(report.issues.map((i: any) => `${i.locale}:${i.code}`)).toEqual(expect.arrayContaining(['es:placeholder-mismatch', 'ru:icu-syntax']));
@@ -60,8 +60,8 @@ describe('ab-nextjs-i18n check', { timeout: 30_000 }, () => {
 
   it('only fails on warnings with --strict', async () => {
     await edit('fr', (m) => {
-      m.Common.extra = 'Pas dans la source';
-      m.Theme.label = 'Theme';
+      m.App.extra = 'Pas dans la source';
+      m.App.title = 'Welcome to abElements';
     });
     const lenient = await check();
     expect(lenient.code).toBe(0);
@@ -73,13 +73,13 @@ describe('ab-nextjs-i18n check', { timeout: 30_000 }, () => {
   });
 
   it('honours the glossary allowlist for identical values', async () => {
-    await edit('fr', (m) => (m.Theme.label = 'Theme'));
-    await writeJsonFile(join(dir, 'messages', '.ab-i18n-glossary.json'), { doNotTranslate: ['abElements'], allowIdentical: ['Theme.label'] });
+    await edit('fr', (m) => (m.App.title = 'Welcome to abElements'));
+    await writeJsonFile(join(dir, 'messages', '.ab-i18n-glossary.json'), { doNotTranslate: ['abElements'], allowIdentical: ['App.title'] });
     expect((await check('--strict')).code).toBe(0);
   });
 
   it('reports empty translations and missing files', async () => {
-    await edit('es', (m) => (m.Common.save = ''));
+    await edit('es', (m) => (m.App.title = ''));
     await removeDir(join(dir, 'messages', 'ru.json'));
     const { code, report } = await check();
     expect(code).toBe(1);

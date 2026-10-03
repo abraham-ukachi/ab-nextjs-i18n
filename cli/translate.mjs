@@ -22,7 +22,7 @@ Options:
   --to <list>          Target locales (default: every other locale)
   --provider <list>    deepl | openai | google | libretranslate | trans | ./custom.mjs
                        (comma list = fallback chain; default: deepl,openai)
-  --keys <patterns>    Only these keys, e.g. App,Common.save,Theme.*
+  --keys <patterns>    Only these keys, e.g. App,App.title,Nav.*
   --force              Re-translate machine-owned keys even when up to date (never hand edits)
   --prune              Remove target keys that aren't in the source
   --concurrency <n>    Parallel requests (default: 2)

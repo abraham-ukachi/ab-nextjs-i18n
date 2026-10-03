@@ -60,20 +60,14 @@ describe('ab-nextjs-i18n package smoke', () => {
     }
   });
 
-  it('ships starter messages with the same keys in en, fr, es and ru', () => {
+  it('ships tiny starter messages (4 examples) with the same keys in en, fr, es and ru', () => {
     const keys = (locale: string) => {
       const data = JSON.parse(readFileSync(join(root, 'templates/messages', `${locale}.json`), 'utf8'));
       return Object.entries<Record<string, string>>(data).flatMap(([ns, values]) => Object.keys(values).map((key) => `${ns}.${key}`));
     };
     const en = keys('en');
-    expect(Object.keys(JSON.parse(readFileSync(join(root, 'templates/messages/en.json'), 'utf8')))).toEqual([
-      'App',
-      'Common',
-      'Language',
-      'Theme',
-      'NotFound',
-      'Metadata',
-    ]);
+    // demo examples only: a plain string, an ICU placeholder, a plural and a rich-text tag
+    expect(en).toEqual(['App.title', 'App.greeting', 'App.items', 'App.learnMore']);
     for (const locale of ['fr', 'es', 'ru']) expect(keys(locale)).toEqual(en);
   });
 });
