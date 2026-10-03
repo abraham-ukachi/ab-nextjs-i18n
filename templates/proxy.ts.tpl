@@ -1,0 +1,11 @@
+// Next.js 16 proxy (formerly middleware): locale detection, redirects and the NEXT_LOCALE cookie.
+// To add an auth guard, pass `onRequest` (see the ab-nextjs-i18n README, "Proxy (with auth)").
+import { createAbI18nProxy } from 'ab-nextjs-i18n/proxy';
+import abI18nConfig from '{{CONFIG_IMPORT}}';
+
+export default createAbI18nProxy(abI18nConfig);
+
+export const config = {
+  // Everything except API routes, Next.js / Vercel internals and files with an extension.
+  matcher: '/((?!api|trpc|_next|_vercel|.*\\..*).*)',
+};

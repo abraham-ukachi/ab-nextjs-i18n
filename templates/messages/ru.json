@@ -1,0 +1,46 @@
+{
+  "App": {
+    "name": "abElements",
+    "description": "Быстрые, красивые и доступные приложения на Next.js.",
+    "welcome": "Добро пожаловать в {name}!",
+    "greeting": "Здравствуйте, {name}!"
+  },
+  "Common": {
+    "loading": "Загрузка…",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "close": "Закрыть",
+    "back": "Назад",
+    "next": "Далее",
+    "retry": "Повторить",
+    "search": "Поиск",
+    "items": "{count, plural, =0 {Нет элементов} one {# элемент} few {# элемента} many {# элементов} other {# элемента}}",
+    "learnMore": "Подробнее о <link>{name}</link>"
+  },
+  "Language": {
+    "label": "Язык",
+    "select": "Выберите язык",
+    "current": "Текущий язык: {language}",
+    "changed": "Язык изменён на {language}.",
+    "en": "Английский",
+    "fr": "Французский",
+    "es": "Испанский",
+    "ru": "Русский"
+  },
+  "Theme": {
+    "label": "Тема",
+    "light": "Светлая",
+    "dark": "Тёмная",
+    "system": "Системная",
+    "changed": "Тема изменена на {theme}."
+  },
+  "NotFound": {
+    "title": "Страница не найдена",
+    "description": "Извините, мы не нашли страницу, которую вы ищете.",
+    "backHome": "На главную"
+  },
+  "Metadata": {
+    "title": "abElements · UI-элементы для Next.js",
+    "description": "Лёгкая коллекция элементов для приложений на Next.js от Abraham Ukachi."
+  }
+}

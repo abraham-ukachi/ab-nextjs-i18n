@@ -1,0 +1,46 @@
+{
+  "App": {
+    "name": "abElements",
+    "description": "Fast, beautiful and accessible Next.js apps.",
+    "welcome": "Welcome to {name}!",
+    "greeting": "Hello, {name}!"
+  },
+  "Common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "retry": "Try again",
+    "search": "Search",
+    "items": "{count, plural, =0 {No items} one {# item} other {# items}}",
+    "learnMore": "Learn more about <link>{name}</link>"
+  },
+  "Language": {
+    "label": "Language",
+    "select": "Choose a language",
+    "current": "Current language: {language}",
+    "changed": "The language has been changed to {language}.",
+    "en": "English",
+    "fr": "French",
+    "es": "Spanish",
+    "ru": "Russian"
+  },
+  "Theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "changed": "The theme has been changed to {theme}."
+  },
+  "NotFound": {
+    "title": "Page not found",
+    "description": "Sorry, we couldn't find the page you're looking for.",
+    "backHome": "Back to home"
+  },
+  "Metadata": {
+    "title": "abElements · Next.js UI elements",
+    "description": "A lightweight collection of elements for Next.js apps, by Abraham Ukachi."
+  }
+}
