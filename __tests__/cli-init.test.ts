@@ -40,6 +40,8 @@ describe('ab-nextjs-i18n init', { timeout: 30_000 }, () => {
     expect(config).toContain("localePrefix: 'as-needed'");
     expect(readFileSync(join(dir, 'i18n/global.d.ts'), 'utf8')).toContain('interface AppConfig');
     expect(readFileSync(join(dir, 'i18n/request.ts'), 'utf8')).toContain('import(`../messages/${locale}.json`)');
+    // next/root-params is the default locale source (requestLocale / setRequestLocale are deprecated)
+    expect(readFileSync(join(dir, 'i18n/request.ts'), 'utf8')).toMatch(/^import \* as rootParams from 'next\/root-params';$[\s\S]*^  rootParam: \(\) => rootParams\.locale\(\),$/m);
     expect(readFileSync(join(dir, 'proxy.ts'), 'utf8')).toContain("matcher: '/((?!api|trpc|_next|_vercel|.*\\\\..*).*)'");
     expect(report.nextSteps.join('\n')).toMatch(/withAbI18n/);
     // init never touches package.json / next.config / tsconfig

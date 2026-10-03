@@ -195,7 +195,8 @@ export async function runInit(flags = {}, io = {}) {
   nextSteps.push(`Wrap next.config with the plugin (it also adds ab-nextjs-i18n to transpilePackages):
     import { withAbI18n } from 'ab-nextjs-i18n/plugin';
     export default withAbI18n(nextConfig);`);
-  nextSteps.push(`Move your routes into ${appDir}/[locale]/ (layout.tsx, page.tsx, not-found.tsx...). Keep manifest.ts, sitemap.ts and robots.ts in ${appDir}/.`);
+  nextSteps.push(`Move your routes into ${appDir}/[locale]/ (layout.tsx, page.tsx, not-found.tsx...). Keep manifest.ts, sitemap.ts and robots.ts in ${appDir}/.
+    ${appDir}/[locale]/layout.tsx must be the root layout (delete ${appDir}/layout.tsx): i18n/request.ts reads the locale from next/root-params.`);
   nextSteps.push(`In ${appDir}/[locale]/layout.tsx:
     import { AbI18nProvider } from 'ab-nextjs-i18n';
     import { generateAbStaticParams } from 'ab-nextjs-i18n/server';

@@ -19,11 +19,11 @@ export interface AbRequestConfigOptions<L extends string = string> {
    */
   loadMessages: (locale: L) => Promise<AbMessages> | AbMessages;
   /**
-   * Optional root-param reader, e.g. `() => rootParams.locale()` from
-   * `import * as rootParams from 'next/root-params'` (Next 16.3+). Only works
-   * when the root layout lives in `app/[locale]/layout.tsx`. When it's missing,
-   * returns nothing or throws (Server Actions, Route Handlers), the request
-   * locale from the proxy (`requestLocale`) is used instead.
+   * Root-param reader (the default in the `init` template): `() => rootParams.locale()`
+   * with `import * as rootParams from 'next/root-params'` (Next 16.3+). Needs the root
+   * layout at `app/[locale]/layout.tsx`. When it's missing, returns nothing or throws
+   * (Server Actions, Route Handlers), next-intl's `requestLocale` (deprecated in
+   * next-intl 4.14.9, the locale the proxy detected) is used as the fallback.
    */
   rootParam?: () => Promise<string | undefined> | string | undefined;
   /** Extra next-intl request config (timeZone, now, formats, onError, getMessageFallback...). */

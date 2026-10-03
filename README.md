@@ -201,7 +201,7 @@ export default withAbI18n(nextConfig, { precompile: true, config: abI18nConfig }
 
 ### Layout
 
-`app/[locale]/layout.tsx`: validate the locale, enable static rendering, set `<html lang>` and provide the messages to Client Components.
+`app/[locale]/layout.tsx` (the **root layout**: no `app/layout.tsx`): validate the locale, prerender every locale, set `<html lang>` and provide the messages to Client Components.
 
 ```tsx
 // app/[locale]/layout.tsx
@@ -209,16 +209,16 @@ import type { ReactNode } from 'react';
 import { notFound } from 'next/navigation';
 import { AbI18nProvider } from 'ab-nextjs-i18n';
 import { isAbLocale } from 'ab-nextjs-i18n/config';
-import { generateAbStaticParams, setAbRequestLocale } from 'ab-nextjs-i18n/server';
+import { generateAbStaticParams } from 'ab-nextjs-i18n/server';
 import abI18nConfig from '@/i18n/config';
 
-// Prerender /, /fr, /es and /ru at build time.
+// Prerender /, /fr, /es and /ru at build time (i18n/request.ts reads the locale from
+// next/root-params, so no setAbRequestLocale is needed).
 export const generateStaticParams = () => generateAbStaticParams(abI18nConfig);
 
 export default async function LocaleLayout({ children, params }: { children: ReactNode; params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isAbLocale(abI18nConfig, locale)) notFound(); // unknown prefix → 404
-  setAbRequestLocale(locale); // enables static rendering
 
   return (
     <html lang={locale}>
@@ -236,22 +236,23 @@ Only send some namespaces to the client (smaller pages):
 <AbI18nProvider config={abI18nConfig} namespaces={['App']}>{children}</AbI18nProvider>
 ```
 
-The generated request config (next-intl finds it automatically):
+The generated request config (next-intl finds it automatically). The locale comes from `next/root-params` (Next.js 16.3+), the default since next-intl 4.14.9 deprecates `requestLocale` / `setRequestLocale`:
 
 ```ts
 // i18n/request.ts
 // next-intl request config (found automatically by `withAbI18n` / next-intl's plugin).
 import { createAbRequestConfig } from 'ab-nextjs-i18n/server';
+import * as rootParams from 'next/root-params';
 import abI18nConfig from './config';
 
 export default createAbRequestConfig({
   config: abI18nConfig,
   // Keep this `import()` here so next-intl's (opt-in) precompile loader can see the JSON files.
   loadMessages: async (locale) => (await import(`../messages/${locale}.json`)).default,
-  // Next.js 16.3+: once your root layout is `app/[locale]/layout.tsx`, you can read the
-  // locale from `next/root-params` (static rendering without `setRequestLocale`):
-  //   import * as rootParams from 'next/root-params';
-  //   rootParam: () => rootParams.locale(),
+  // The locale of `app/[locale]/layout.tsx` (it must be the root layout: no `app/layout.tsx`).
+  // Pages render statically without `setAbRequestLocale`. Server Actions and Route Handlers
+  // (no root params yet) fall back to the locale the proxy detected.
+  rootParam: () => rootParams.locale(),
 });
 ```
 
@@ -406,7 +407,7 @@ A list of all the supported **server** helpers and their current status:
 | 3 | *`getAbLocale`* | **server/index.ts** | [Done](./server/index.ts) |
 | 4 | *`getAbMessages`* | **server/index.ts** | [Done](./server/index.ts) |
 | 5 | *`getAbFormatter`* | **server/index.ts** | [Done](./server/index.ts) |
-| 6 | *`setAbRequestLocale`* | **server/index.ts** | [Done](./server/index.ts) |
+| 6 | *`setAbRequestLocale`* (fallback without `next/root-params`) | **server/index.ts** | [Done](./server/index.ts) |
 | 7 | *`generateAbStaticParams`* | **server/index.ts** | [Done](./server/index.ts) |
 | 8 | *`getAbAlternates`* | **server/ab-alternates.ts** | [Done](./server/ab-alternates.ts) |
 | 9 | *`getAbSitemapEntries`* | **server/ab-sitemap.ts** | [Done](./server/ab-sitemap.ts) |
@@ -423,7 +424,7 @@ A list of all the supported **server** helpers and their current status:
 // app/[locale]/page.tsx
 import { notFound } from 'next/navigation';
 import { isAbLocale } from 'ab-nextjs-i18n/config';
-import { getAbFormatter, getAbTranslations, setAbRequestLocale } from 'ab-nextjs-i18n/server';
+import { getAbFormatter, getAbTranslations } from 'ab-nextjs-i18n/server';
 import abI18nConfig from '@/i18n/config';
 import { AbLink } from '@/i18n/navigation';
 import { CartBadge } from '@/components/cart-badge';
@@ -433,7 +434,6 @@ import { LocaleSelect } from '@/components/locale-select';
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isAbLocale(abI18nConfig, locale)) notFound();
-  setAbRequestLocale(locale);
 
   const t = await getAbTranslations('App'); // the request's locale
   const format = await getAbFormatter();
@@ -738,7 +738,7 @@ export const config = {
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { isAbLocale } from 'ab-nextjs-i18n/config';
-import { getAbAlternates, getAbTranslations, setAbRequestLocale } from 'ab-nextjs-i18n/server';
+import { getAbAlternates, getAbTranslations } from 'ab-nextjs-i18n/server';
 import abI18nConfig from '@/i18n/config';
 
 type Props = { params: Promise<{ locale: string }> };
@@ -758,7 +758,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function AboutPage({ params }: Props) {
   const { locale } = await params;
   if (!isAbLocale(abI18nConfig, locale)) notFound();
-  setAbRequestLocale(locale);
   const t = await getAbTranslations('App');
 
   return <h1>{t('title')}</h1>;
@@ -778,20 +777,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
 }
 ```
 
-**`next/root-params` (opt-in).** Next.js 16.3 can read the locale from the root params, so pages render statically without `setAbRequestLocale`. It only works when the root layout is `app/[locale]/layout.tsx`:
+**Static rendering.** With `rootParam: () => rootParams.locale()` (the `init` default above), every page under `app/[locale]` renders statically: no `setAbRequestLocale` in layouts or pages, and `getAbTranslations('App')` / `getAbLocale()` read the right locale everywhere (also in `generateMetadata`).
 
-```ts
-// i18n/request.ts
-import { createAbRequestConfig } from 'ab-nextjs-i18n/server';
-import * as rootParams from 'next/root-params';
-import abI18nConfig from './config';
-
-export default createAbRequestConfig({
-  config: abI18nConfig,
-  loadMessages: async (locale) => (await import(`../messages/${locale}.json`)).default,
-  rootParam: () => rootParams.locale(),
-});
-```
+> NOTE: `next/root-params` only works when `app/[locale]/layout.tsx` is the root layout, and not yet in Server Actions or Route Handlers. There, `createAbRequestConfig` falls back to the locale the proxy detected (next-intl's `requestLocale`); pass `{ locale }` explicitly (`getAbTranslations({ locale, namespace })`) when you have it. If your root layout must stay at `app/layout.tsx`, remove the `rootParam` line and call `setAbRequestLocale(locale)` (next-intl's deprecated `setRequestLocale`) at the top of each `[locale]` layout and page for static rendering.
 
 
 ## Typed messages
@@ -867,14 +855,13 @@ Using them (`t.rich` turns each tag into a React element):
 // app/[locale]/cart/page.tsx
 import { notFound } from 'next/navigation';
 import { isAbLocale } from 'ab-nextjs-i18n/config';
-import { getAbTranslations, setAbRequestLocale } from 'ab-nextjs-i18n/server';
+import { getAbTranslations } from 'ab-nextjs-i18n/server';
 import abI18nConfig from '@/i18n/config';
 import { AbLink } from '@/i18n/navigation';
 
 export default async function CartPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   if (!isAbLocale(abI18nConfig, locale)) notFound();
-  setAbRequestLocale(locale);
   const t = await getAbTranslations('Cart');
 
   return (
@@ -1001,7 +988,8 @@ jobs:
 3. Move your locales into `i18n/config.ts`, and swap `next-intl/plugin` for `withAbI18n`.
 4. If you have a `middleware.ts`, rename it to `proxy.ts` (`npx @next/codemod@canary middleware-to-proxy .`) and use `createAbI18nProxy`.
 5. LYD messages: `npx ab-nextjs-i18n migrate` then `--write` to turn `(x)` into `{x}`, then `check`.
-6. Use short locale codes (`en`, `fr`, `es`, `ru`).
+6. Make `app/[locale]/layout.tsx` the root layout (delete `app/layout.tsx`) and remove your `setRequestLocale` calls: `i18n/request.ts` reads the locale from `next/root-params`.
+7. Use short locale codes (`en`, `fr`, `es`, `ru`).
 
 From plain next-intl, the imports map one to one:
 
@@ -1015,7 +1003,7 @@ import { useTranslations } from 'next-intl';
 // after
 import { withAbI18n } from 'ab-nextjs-i18n/plugin'; // withAbI18n(nextConfig)
 import { createAbI18nProxy } from 'ab-nextjs-i18n/proxy'; // createAbI18nProxy(abI18nConfig)
-import { getAbTranslations, setAbRequestLocale } from 'ab-nextjs-i18n/server';
+import { getAbTranslations } from 'ab-nextjs-i18n/server'; // drop setRequestLocale: the locale comes from next/root-params
 import { useAbTranslations } from 'ab-nextjs-i18n';
 ```
 

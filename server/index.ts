@@ -14,6 +14,10 @@ export { getAbSitemapEntries } from './ab-sitemap';
 export type { AbSitemapPath } from './ab-sitemap';
 export { createAbLocaleCookieAction } from './ab-locale-cookie';
 export type { AbLocaleCookieAction } from './ab-locale-cookie';
+/**
+ * `setRequestLocale` (next-intl, deprecated in 4.14.9). Only needed without `rootParam`
+ * (root layout not at `app/[locale]/layout.tsx`): call it in layouts and pages for static rendering.
+ */
 export { setRequestLocale as setAbRequestLocale } from 'next-intl/server';
 
 
