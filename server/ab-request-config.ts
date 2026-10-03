@@ -33,7 +33,7 @@ export interface AbRequestConfigOptions<L extends string = string> {
 
 /**
  * Resolves the locale of a request: explicit override → root param → proxy
- * (`requestLocale`) → `defaultLocale`. Exported for tests.
+ * (`requestLocale`) → `defaultLocale`. Internal (tests import it directly): not re-exported by the package.
  */
 export async function resolveAbRequestLocale<L extends string>(
   config: AbI18nConfig<L>,

@@ -2,7 +2,7 @@
 
 import type { AbI18nCatalogEntry } from './types/catalog';
 
-export { default as AbI18nProvider, pickAbNamespaces } from './ab-i18n-provider';
+export { default as AbI18nProvider } from './ab-i18n-provider';
 export type { AbI18nProviderProps } from './ab-i18n-provider';
 export { AbI18nConfigProvider, useAbI18nConfig } from './ab-i18n-provider/ab-i18n-config-context';
 export { useAbLocaleSwitch } from './use-ab-locale-switch';

@@ -6,7 +6,7 @@ import 'server-only';
 import { getFormatter, getLocale, getMessages, getTranslations } from 'next-intl/server';
 import type { AbI18nConfig } from '../config';
 
-export { createAbRequestConfig, resolveAbRequestLocale } from './ab-request-config';
+export { createAbRequestConfig } from './ab-request-config';
 export type { AbMessages, AbRequestConfigOptions } from './ab-request-config';
 export { getAbAlternates } from './ab-alternates';
 export type { AbAlternates, AbAlternatesOptions } from './ab-alternates';

@@ -19,7 +19,7 @@ export type AbI18nProviderProps = NextIntlClientProviderProps & {
 };
 
 
-/** Picks the given top-level namespaces from `messages`. Exported for tests. */
+/** Picks the given top-level namespaces from `messages` (internal: not re-exported by the package). */
 export function pickAbNamespaces(messages: Record<string, unknown>, namespaces: readonly string[]): Record<string, unknown> {
   const picked: Record<string, unknown> = {};
   for (const namespace of namespaces) {

@@ -11,7 +11,9 @@ import {
   toAbRouting,
 } from '../config';
 import { getAbNextIntlPluginConfig, withAbI18n } from '../plugin';
-import { generateAbStaticParams, getAbAlternates, getAbSitemapEntries, resolveAbRequestLocale } from '../server';
+import { generateAbStaticParams, getAbAlternates, getAbSitemapEntries } from '../server';
+// internal helpers (not part of the public entries)
+import { resolveAbRequestLocale } from '../server/ab-request-config';
 import { pickAbNamespaces } from '../ab-i18n-provider';
 
 const config = defineAbI18n();

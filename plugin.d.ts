@@ -28,6 +28,7 @@ export interface AbNextIntlPluginConfig {
   };
 }
 
+/** @internal The next-intl plugin config `withAbI18n` builds (kept exported for tests). Prefer `withAbI18n`. */
 export declare function getAbNextIntlPluginConfig(options?: AbI18nPluginOptions): AbNextIntlPluginConfig;
 
 export declare function withAbI18n(nextConfig?: NextConfig, options?: AbI18nPluginOptions): NextConfig;
