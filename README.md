@@ -39,7 +39,7 @@
 - Typed message keys out of the box, ICU messages (`{name}`), JSON files only.
 - No UI: headless hooks only (`AbLocaleSwitcher` will live in `ab-nextjs-components`).
 
-> NOTE: Every example below compiles: they were copied from a Next.js 16.3.4 test app and checked with `next build` and `tsc`.
+> NOTE: Every TypeScript example below was copied from a Next.js 16.3.4 test app and checked with `next build` and `tsc`.
 
 
 
