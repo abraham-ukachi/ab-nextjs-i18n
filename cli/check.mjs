@@ -1,11 +1,12 @@
 // ===== `ab-nextjs-i18n check` ===== //
 //
 // CI guard for messages: missing / extra / empty keys, identical-to-source
-// values, placeholder & tag mismatches and ICU syntax errors.
+// values, placeholder & tag mismatches, ICU syntax errors and plural categories
+// missing for a locale (CLDR, via Intl.PluralRules).
 
 import { readJson } from './lib/fs-safe.mjs';
 import { readGlossary, isGlossaryOnly } from './lib/glossary.mjs';
-import { diffIcuSignatures, getIcuSignature, validateIcu } from './lib/icu-mask.mjs';
+import { diffIcuSignatures, getIcuSignature, getMissingPluralCategories, validateIcu } from './lib/icu-mask.mjs';
 import { flattenMessages, listMessageLocales, messagesFile } from './lib/messages.mjs';
 import { loadAbI18nConfig } from './lib/config-load.mjs';
 import { bold, dim, green, red, splitList, table, yellow } from './lib/output.mjs';
@@ -17,12 +18,12 @@ Options:
   --dir <path>        Messages folder (default: from i18n/config.ts, else messages)
   --locales <list>    Locales to check (default: from i18n/config.ts or the messages folder)
   --source <locale>   Source locale (default: sourceLocale / defaultLocale)
-  --strict            Also fail on warnings (extra keys, identical values, empty source)
+  --strict            Also fail on warnings (extra keys, identical values, empty source, plural categories)
   --format <fmt>      text | json (default: text)
   --cwd <path>        App root (default: current folder)
 
 Errors:   missing-key, empty-value, placeholder-mismatch, icu-syntax, type-mismatch, invalid-key, missing-file, invalid-json
-Warnings: extra-key, identical-to-source, empty-source, extra-file
+Warnings: extra-key, identical-to-source, empty-source, extra-file, plural-categories
 `;
 
 const kindOf = (value) => (Array.isArray(value) ? 'array' : value === null ? 'null' : typeof value);
@@ -61,6 +62,9 @@ export async function checkMessages({ messagesPath, locales, sourceLocale, gloss
     if (!result.ok) {
       add('error', 'icu-syntax', locale, key, `invalid ICU message (${result.error})`);
       return null;
+    }
+    for (const { name, type, missing } of getMissingPluralCategories(value, locale)) {
+      add('warning', 'plural-categories', locale, key, `{${name}, ${type}} lacks ${locale} categor${missing.length > 1 ? 'ies' : 'y'} ${missing.join(', ')}`);
     }
     return getIcuSignature(value);
   };

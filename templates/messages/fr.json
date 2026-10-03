@@ -2,7 +2,7 @@
   "App": {
     "title": "Bienvenue sur abElements",
     "greeting": "Bonjour, {name} !",
-    "items": "{count, plural, =0 {Aucun élément pour l’instant} one {# élément} other {# éléments}}",
+    "items": "{count, plural, =0 {Aucun élément pour l’instant} one {# élément} many {# d’éléments} other {# éléments}}",
     "learnMore": "Lisez la <link>documentation</link> pour ajouter vos propres messages."
   }
 }

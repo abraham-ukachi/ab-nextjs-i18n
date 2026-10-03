@@ -72,6 +72,29 @@ describe('ab-nextjs-i18n check', { timeout: 30_000 }, () => {
     expect(strict.report.ok).toBe(false);
   });
 
+  it('warns when a plural lacks the locale\'s CLDR categories (ru one/few/many/other)', async () => {
+    // A machine translation that kept the English branches only.
+    await edit('ru', (m) => (m.App.items = '{count, plural, =0 {Пусто} one {# элемент} other {# элемента}}'));
+    const { code, report } = await check();
+    expect(code).toBe(0);
+    expect(report.issues).toEqual([
+      { severity: 'warning', code: 'plural-categories', locale: 'ru', key: 'App.items', message: '{count, plural} lacks ru categories few, many' },
+    ]);
+    expect((await check('--strict')).code).toBe(1);
+
+    // Exact matches don't replace a category; ordinals use the ordinal rules (en: one, two, few, other).
+    await edit('ru', (m) => (m.App.items = '{count, plural, =1 {# элемент} few {# элемента} many {# элементов} other {# элемента}}'));
+    await edit('en', (m) => (m.App.rank = '{n, selectordinal, one {#st} other {#th}}'));
+    for (const locale of ['fr', 'es', 'ru']) await edit(locale, (m) => (m.App.rank = '{n, selectordinal, other {#}}'));
+    const second = await check();
+    const plural = second.report.issues.filter((issue: any) => issue.code === 'plural-categories');
+    expect(plural).toEqual([
+      { severity: 'warning', code: 'plural-categories', locale: 'en', key: 'App.rank', message: '{n, selectordinal} lacks en categories two, few' },
+      { severity: 'warning', code: 'plural-categories', locale: 'fr', key: 'App.rank', message: '{n, selectordinal} lacks fr category one' },
+      { severity: 'warning', code: 'plural-categories', locale: 'ru', key: 'App.items', message: '{count, plural} lacks ru category one' },
+    ]);
+  });
+
   it('honours the glossary allowlist for identical values', async () => {
     await edit('fr', (m) => (m.App.title = 'Welcome to abElements'));
     await writeJsonFile(join(dir, 'messages', '.ab-i18n-glossary.json'), { doNotTranslate: ['abElements'], allowIdentical: ['App.title'] });

@@ -114,7 +114,7 @@ The starter messages are 4 examples, one of each kind (a plain string, an ICU pl
   "App": {
     "title": "Bienvenue sur abElements",
     "greeting": "Bonjour, {name} !",
-    "items": "{count, plural, =0 {Aucun élément pour l’instant} one {# élément} other {# éléments}}",
+    "items": "{count, plural, =0 {Aucun élément pour l’instant} one {# élément} many {# d’éléments} other {# éléments}}",
     "learnMore": "Lisez la <link>documentation</link> pour ajouter vos propres messages."
   }
 }
@@ -354,6 +354,8 @@ error     fr      App.greeting  placeholder-mismatch  unknown placeholder(s) {no
 
 ✖ 3 error(s), 0 warning(s)
 ```
+
+Warnings (exit 1 only with `--strict`): `extra-key`, `identical-to-source`, `empty-source`, `extra-file` and `plural-categories`, a `plural` / `selectordinal` that lacks one of the locale's CLDR categories (from `Intl.PluralRules`). For example, a `ru` plural with only `one` / `other` lacks `few`, `many`, and `fr` / `es` plurals need `many` (`1 000 000 d’articles`). Exact matches such as `=0` don't count.
 
 ### `migrate`
 
@@ -845,12 +847,12 @@ Placeholders, plurals, select, number and date arguments, and rich-text tags (`m
 }
 ```
 
-The same keys in French (plural categories follow each language: `ru` also has `few` and `many`):
+The same keys in French (plural categories follow each language's CLDR rules: `fr` adds `many`, `ru` has `few` and `many`; `check` warns when one is missing):
 
 ```json
 {
   "Cart": {
-    "summary": "{count, plural, =0 {Votre panier est vide} one {# article dans votre panier} other {# articles dans votre panier}}",
+    "summary": "{count, plural, =0 {Votre panier est vide} one {# article dans votre panier} many {# d’articles dans votre panier} other {# articles dans votre panier}}",
     "owner": "{gender, select, female {Son panier} male {Son panier} other {Leur panier}}",
     "total": "Total : {total, number, ::currency/EUR}",
     "updated": "Mis à jour le {date, date, medium}",

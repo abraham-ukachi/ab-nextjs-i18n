@@ -375,6 +375,46 @@ export function getIcuSignature(messageOrAst) {
 
 
 /**
+ * Lists the CLDR plural categories a message lacks for `locale` (`plural` uses the
+ * cardinal rules, `selectordinal` the ordinal ones). Exact matches (`=0`) don't count:
+ * `other` covers missing categories at runtime, but the grammar is usually wrong
+ * (e.g. `ru` needs `one`, `few`, `many`, `other`).
+ *
+ * @param { string | Array<object> } messageOrAst
+ * @param { string } locale
+ * @returns { Array<{ name: string, type: 'plural' | 'selectordinal', missing: string[] }> }
+ */
+export function getMissingPluralCategories(messageOrAst, locale) {
+  const ast = typeof messageOrAst === 'string' ? parseIcu(messageOrAst) : messageOrAst;
+  const categories = (type) => {
+    try {
+      return new Intl.PluralRules(locale, { type }).resolvedOptions().pluralCategories;
+    } catch {
+      return [];
+    }
+  };
+  const required = { plural: categories('cardinal'), selectordinal: categories('ordinal') };
+  const out = [];
+
+  const walk = (nodes) => {
+    for (const node of nodes) {
+      if (node.type === 'tag') walk(node.children);
+      else if (COMPLEX_TYPES.has(node.type)) {
+        if (required[node.type]) {
+          const keys = new Set(node.options.map((option) => option.key));
+          const missing = required[node.type].filter((category) => !keys.has(category));
+          if (missing.length) out.push({ name: node.name, type: node.type, missing });
+        }
+        for (const option of node.options) walk(option.children);
+      }
+    }
+  };
+  walk(ast);
+  return out;
+}
+
+
+/**
  * Compares the signatures of a source and a target message.
  *
  * @returns { string[] } human readable differences (empty = compatible)
