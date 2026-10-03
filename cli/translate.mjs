@@ -182,18 +182,8 @@ export async function runTranslate(flags = {}, io = {}) {
   const warnings = [...config.warnings];
   if (!lockUsable) warnings.push(`The lock was written for source "${lock.sourceLocale}", not "${from}": existing translations are treated as hand-written.`);
 
-  let chain = [];
-  if (!dryRun) {
-    try {
-      chain = io.providers ?? (await resolveProviders(flags.provider, { cwd: config.root, env }));
-    } catch (error) {
-      return fail(error.message);
-    }
-  }
-
-  const report = { ok: true, dryRun, from, providers: chain.map((p) => p.name), messagesDir: config.messagesDir, warnings, locales: [] };
-  let lockChanged = false;
-
+  // 1. Plan every locale (no provider, no key needed).
+  const plans = [];
   for (const to of targets) {
     const file = messagesFile(config.messagesPath, to);
     const originalText = await readFile(file, 'utf8').catch((error) => (error.code === 'ENOENT' ? null : Promise.reject(error)));
@@ -247,7 +237,24 @@ export async function runTranslate(flags = {}, io = {}) {
       }
     }
     result.planned = jobs.map(({ key, reason }) => ({ key, reason }));
+    plans.push({ to, file, originalText, targetMap, newLock, jobs, result });
+  }
 
+  // 2. Providers (and their keys) are only resolved when something needs translating.
+  let chain = [];
+  if (!dryRun && plans.some((plan) => plan.jobs.length)) {
+    try {
+      chain = io.providers ?? (await resolveProviders(flags.provider, { cwd: config.root, env }));
+    } catch (error) {
+      return fail(error.message);
+    }
+  }
+
+  const report = { ok: true, dryRun, from, providers: chain.map((p) => p.name), messagesDir: config.messagesDir, warnings, locales: [] };
+  let lockChanged = false;
+
+  // 3. Translate and write.
+  for (const { to, file, originalText, targetMap, newLock, jobs, result } of plans) {
     if (!dryRun && jobs.length) {
       const outcomes = await translateJobs(jobs, chain, { from, to, glossary, env, fetch: io.fetch, sleep: io.sleep, concurrency });
       for (const job of jobs) {
@@ -323,7 +330,7 @@ function printReport(report, format, log) {
     return;
   }
 
-  log(`${bold('ab-nextjs-i18n translate')} ${dim(`${report.messagesDir} · from ${report.from}${report.dryRun ? ' · dry run, nothing sent or written' : ` · ${report.providers.join(' → ')}`}`)}`);
+  log(`${bold('ab-nextjs-i18n translate')} ${dim(`${report.messagesDir} · from ${report.from}${report.dryRun ? ' · dry run, nothing sent or written' : ` · ${report.providers.join(' → ') || 'nothing to translate'}`}`)}`);
   for (const warning of report.warnings) log(yellow(`⚠ ${warning}`));
   log('');
   log(table(headers, rows));
@@ -332,5 +339,5 @@ function printReport(report, format, log) {
     log(table(['Locale', 'Key', 'Status', 'Note'], details.map(([a, b, status, d]) => [a, b, status === 'rejected' || status === 'failed' ? red(status) : yellow(status), d])));
   }
   log('');
-  log(report.ok ? green('✔ Done.') : red('✖ Some messages were not translated (see above).'));
+  log(report.ok ? green(report.dryRun || report.providers.length ? '✔ Done.' : '✔ Nothing to translate.') : red('✖ Some messages were not translated (see above).'));
 }

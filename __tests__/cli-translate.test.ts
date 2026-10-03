@@ -168,6 +168,32 @@ describe('ab-nextjs-i18n translate', { timeout: 30_000 }, () => {
     expect(fr.App.greeting).toBe('[fr] Hello, {name}!');
     expect(fr.Common.brand).toBe('abElements');
   });
+
+  it('needs no provider or key when there is nothing to translate (exit 0)', async () => {
+    const { provider } = mockProvider();
+    expect((await runTranslate({ cwd: dir }, { providers: [provider], log: silent })).code).toBe(0);
+
+    // Everything is up to date now: no keys in env, default chain, still exit 0 and no provider resolved.
+    const lines: string[] = [];
+    const { code, report } = await runTranslate({ cwd: dir }, { env: {}, log: (line: string) => lines.push(line) });
+    expect(code).toBe(0);
+    expect(report.ok).toBe(true);
+    expect(report.providers).toEqual([]);
+    expect(report.locales.every((l: any) => l.planned.length === 0)).toBe(true);
+    expect(lines.join('\n')).toMatch(/Nothing to translate/);
+
+    const bin = await runCli(['translate', '--report', 'json'], dir, { DEEPL_API_KEY: '', OPENAI_API_KEY: '' });
+    expect(bin.code).toBe(0);
+    expect(JSON.parse(bin.stdout).providers).toEqual([]);
+
+    // A new missing key brings the key requirement back (exit 2).
+    const en = await readJsonFile(messages('en'));
+    en.App.extra = 'New text';
+    await writeJsonFile(messages('en'), en);
+    const missing = await runTranslate({ cwd: dir }, { env: {}, log: silent });
+    expect(missing.code).toBe(2);
+    expect(missing.report.error).toMatch(/DEEPL_API_KEY or OPENAI_API_KEY/);
+  });
 });
 
 describe('providers (mocked fetch, no network)', () => {

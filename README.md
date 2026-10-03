@@ -309,6 +309,7 @@ export OPENAI_API_KEY="…"  # OpenAI as the fallback, also for anything DeepL g
 # key values (and anything shaped like sk-… or …:fx) are redacted from errors and reports
 
 # every other locale: missing keys + keys whose source changed
+# (nothing to translate: exit 0, no keys needed)
 npx ab-nextjs-i18n translate
 
 # some locales / some keys only
