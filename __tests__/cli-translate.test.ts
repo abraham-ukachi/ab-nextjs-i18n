@@ -201,7 +201,7 @@ describe('providers (mocked fetch, no network)', () => {
     expect(deeplTargetLang('pt-BR')).toBe('PT-BR');
   });
 
-  it('OpenAI: model from AB_I18N_OPENAI_MODEL, JSON answer of the same length', async () => {
+  it('OpenAI: model from AB_I18N_OPENAI_MODEL, low reasoning effort, JSON answer of the same length', async () => {
     let body: any;
     const fetch = async (_url: string, init: any) => {
       body = JSON.parse(init.body);
@@ -217,6 +217,7 @@ describe('providers (mocked fetch, no network)', () => {
     } as any);
     expect(out).toEqual(['Hola <ph id="0"/>']);
     expect(body.model).toBe('test-model');
+    expect(body.reasoning_effort).toBe('low');
     expect(body.messages[0].content).toMatch(/"cart" → "carrito"/);
     expect(body.messages[0].content).toMatch(/Never translate: abElements/);
   });

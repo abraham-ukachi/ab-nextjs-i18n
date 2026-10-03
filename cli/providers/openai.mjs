@@ -38,6 +38,7 @@ const openaiProvider = {
         headers: { Authorization: `Bearer ${env.OPENAI_API_KEY}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: env.AB_I18N_OPENAI_MODEL || DEFAULT_OPENAI_MODEL,
+          reasoning_effort: 'low', // short UI strings: low effort is faster and cheaper
           response_format: { type: 'json_object' },
           messages: buildOpenAIMessages({ texts, from, to, glossary }),
         }),
