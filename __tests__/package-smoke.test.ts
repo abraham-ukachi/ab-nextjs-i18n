@@ -17,11 +17,21 @@ describe('ab-nextjs-i18n package smoke', () => {
     expect(pkg.peerDependencies['next-intl']).toBe('^4.14.9');
     expect(pkg.devDependencies['next-intl']).toBe('^4.14.9');
     expect(pkg.dependencies['next-intl']).toBeUndefined();
-    // icu-minify stays a direct dependency: the CLI imports it at runtime
-    expect(Object.keys(pkg.dependencies)).toEqual(['icu-minify']);
+    // icu-minify stays a direct dependency: the CLI imports it at runtime;
+    // server-only guards `ab-nextjs-i18n/server` against client bundles
+    expect(Object.keys(pkg.dependencies)).toEqual(['icu-minify', 'server-only']);
     expect(pkg.dependencies['icu-minify']).toBe('^4.14.9');
+    expect(pkg.dependencies['server-only']).toBe('^0.0.1');
     expect(pkg.engines.node).toBe('>=22.18');
     expect(pkg.bin['ab-nextjs-i18n']).toBe('./bin/ab-nextjs-i18n.mjs');
+  });
+
+  it('marks the server entry and the cookie action as server-only', () => {
+    for (const file of ['server/index.ts', 'server/ab-locale-cookie.ts']) {
+      expect(readFileSync(join(root, file), 'utf8'), file).toMatch(/^import 'server-only';$/m);
+    }
+    // the client entry never pulls the server one in
+    expect(readFileSync(join(root, 'index.ts'), 'utf8')).not.toMatch(/from '\.\/server/);
   });
 
   it('points every export at a file that is shipped', () => {

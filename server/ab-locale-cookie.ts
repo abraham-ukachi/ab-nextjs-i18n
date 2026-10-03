@@ -1,5 +1,6 @@
 // ===== AB LOCALE COOKIE ACTION ===== //
 
+import 'server-only';
 import { cookies } from 'next/headers';
 import { isAbLocale } from '../config';
 import type { AbI18nConfig } from '../config';

@@ -92,7 +92,8 @@
   },
   "license": "MIT",
   "dependencies": {
-    "icu-minify": "^4.14.9"
+    "icu-minify": "^4.14.9",
+    "server-only": "^0.0.1"
   },
   "peerDependencies": {
     "next": "^16.3.4",

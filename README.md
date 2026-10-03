@@ -65,7 +65,7 @@ pnpm add ab-nextjs-i18n next-intl
 > the missing peer is installed silently for `ab-nextjs-i18n` only: your app can't import `next-intl` and the typed keys stop working.
 > With `autoInstallPeers: false` pnpm warns (`pnpm peers check`), and `strictPeerDependencies: true` fails the install.
 
-> NOTE: `next` (>= 16.3.4), `react` and `react-dom` (19) are peer dependencies too. `icu-minify` (used by the CLI) comes with this package.
+> NOTE: `next` (>= 16.3.4), `react` and `react-dom` (19) are peer dependencies too. `icu-minify` (used by the CLI) and `server-only` (guards `ab-nextjs-i18n/server`) come with this package.
 > The library entries ship as TypeScript (like every Ab package), so add `ab-nextjs-i18n` to `transpilePackages`
 > (`withAbI18n` does it for you).
 
@@ -671,7 +671,7 @@ export function requireUser(user: unknown, locale: 'en' | 'fr' | 'es' | 'ru') {
 | No. | Entry | What's inside |
 |:----|:------|:--------------|
 | 1 | `ab-nextjs-i18n` | `AbI18nProvider`, client hooks, `getAbLocaleLabel`, `supportedApis` |
-| 2 | `ab-nextjs-i18n/server` | Request config, server getters, alternates, sitemap, `createAbLocaleCookieAction` |
+| 2 | `ab-nextjs-i18n/server` | **Server only** (`import 'server-only'`: importing it from a Client Component is a build error). Request config, server getters, alternates, sitemap, `createAbLocaleCookieAction` |
 | 3 | `ab-nextjs-i18n/proxy` | `createAbI18nProxy`, `AB_I18N_MATCHER` |
 | 4 | `ab-nextjs-i18n/navigation` | `createAbNavigation` |
 | 5 | `ab-nextjs-i18n/config` | `defineAbI18n`, `isAbLocale` and the other pure helpers (plain JS, also used by the CLI) |

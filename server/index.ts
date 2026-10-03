@@ -1,5 +1,8 @@
 // ===== AB I18N SERVER ===== //
 
+// Build error if a Client Component imports this entry (cookies, server actions, next-intl/server).
+import 'server-only';
+
 import { getFormatter, getLocale, getMessages, getTranslations } from 'next-intl/server';
 import type { AbI18nConfig } from '../config';
 
