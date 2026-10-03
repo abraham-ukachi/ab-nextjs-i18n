@@ -16,7 +16,8 @@ const transProvider = {
   async translate({ texts, from, to, execFile: exec = run }) {
     const results = [];
     for (const text of texts) {
-      const { stdout } = await exec('trans', ['-b', '-no-warn', '-no-autocorrect', `${from}:${to}`, text], { timeout: 30_000 });
+      // `--` ends the options: a text starting with "-" is never read as a flag.
+      const { stdout } = await exec('trans', ['-b', '-no-warn', '-no-autocorrect', `${from}:${to}`, '--', text], { timeout: 30_000 });
       results.push(String(stdout).replace(/\n$/, ''));
     }
     return results;

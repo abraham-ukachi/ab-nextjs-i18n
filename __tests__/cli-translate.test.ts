@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { runTranslate as runTranslateJs } from '../cli/translate.mjs';
 import deepl, { deeplTargetLang } from '../cli/providers/deepl.mjs';
 import openai from '../cli/providers/openai.mjs';
+import trans from '../cli/providers/trans.mjs';
 import { resolveProviders } from '../cli/providers/index.mjs';
 import { requestJson } from '../cli/lib/http.mjs';
 import { readJsonFile, removeDir, runCli, writeJsonFile } from './helpers';
@@ -308,6 +309,17 @@ describe('providers (mocked fetch, no network)', () => {
       },
     } as any);
     expect(sentAuth).toBe('Bearer sk-other');
+  });
+
+  it('trans: execFile without a shell, "--" before the text', async () => {
+    const calls: Array<{ file: string; args: string[] }> = [];
+    const execFile = async (file: string, args: string[]) => {
+      calls.push({ file, args });
+      return { stdout: `fr:${args[args.length - 1]}\n` };
+    };
+    const out = await trans.translate({ texts: ['-h', 'Hello'], from: 'en', to: 'fr', execFile } as any);
+    expect(out).toEqual(['fr:-h', 'fr:Hello']);
+    expect(calls[0]).toEqual({ file: 'trans', args: ['-b', '-no-warn', '-no-autocorrect', 'en:fr', '--', '-h'] });
   });
 
   it('chains DeepL then OpenAI by default and needs at least one key', async () => {
