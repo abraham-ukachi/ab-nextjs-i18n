@@ -73,6 +73,10 @@ jobs:
           pnpm run lint
           git diff --exit-code || (echo "::error::Lint changed files. Run 'pnpm lint' locally and commit the result." && exit 1)
 
+      - name: Typecheck
+        if: steps.check.outputs.publish == 'true'
+        run: pnpm run typecheck
+
       - name: Test
         if: steps.check.outputs.publish == 'true'
         run: pnpm test
