@@ -306,6 +306,7 @@ npx ab-nextjs-i18n init --yes
 # keys only come from env vars (never commit them)
 export DEEPL_API_KEY="…"   # DeepL first (":fx" keys use the free API)
 export OPENAI_API_KEY="…"  # OpenAI as the fallback, also for anything DeepL gets wrong
+# key values (and anything shaped like sk-… or …:fx) are redacted from errors and reports
 
 # every other locale: missing keys + keys whose source changed
 npx ab-nextjs-i18n translate

@@ -11,6 +11,7 @@ import { diffIcuSignatures, getIcuSignature, maskIcu, validateIcu } from './lib/
 import { classifyTarget, hashMessage, readLock, writeLock } from './lib/lock.mjs';
 import { flattenMessages, matchesKeyPatterns, messagesFile, orderLikeSource, unflattenMessages } from './lib/messages.mjs';
 import { loadAbI18nConfig } from './lib/config-load.mjs';
+import { redactSecrets, secretEnvValues, SECRET_ENV_KEYS } from './lib/redact.mjs';
 import { bold, dim, green, markdownTable, red, splitList, table, yellow } from './lib/output.mjs';
 import { resolveProviders } from './providers/index.mjs';
 
@@ -68,6 +69,9 @@ function checkTranslation(source, value) {
  */
 export async function translateJobs(jobs, chain, context) {
   const { from, to, glossary, env, fetch, sleep, concurrency = 2 } = context;
+  // Provider errors can echo API keys: hide every key value the providers read (and key-shaped strings).
+  const secrets = secretEnvValues(env ?? {}, [...SECRET_ENV_KEYS, ...chain.flatMap((provider) => provider.envKeys ?? [])]);
+  const redact = (text) => redactSecrets(text, secrets);
   const results = new Map();
   let remaining = [];
 
@@ -101,7 +105,7 @@ export async function translateJobs(jobs, chain, context) {
         }
         batch.forEach(({ item, unit }, index) => item.translations.set(unit.id, String(out[index])));
       } catch (error) {
-        for (const { item } of batch) item.batchError = error.message;
+        for (const { item } of batch) item.batchError = redact(error?.message ?? error);
       }
     });
     await pool(tasks, concurrency);
@@ -119,7 +123,7 @@ export async function translateJobs(jobs, chain, context) {
         checkTranslation(item.source, value);
         results.set(item.key, { ok: true, value, provider: provider.name });
       } catch (error) {
-        item.lastError = `${provider.name}: ${error.message}`;
+        item.lastError = redact(`${provider.name}: ${error.message}`);
         item.kind = 'rejected';
         next.push(item);
       }
@@ -145,7 +149,8 @@ export async function runTranslate(flags = {}, io = {}) {
   const dryRun = Boolean(flags['dry-run']);
   const reportFormat = flags.report;
 
-  const fail = (message) => {
+  const fail = (rawMessage) => {
+    const message = redactSecrets(rawMessage, secretEnvValues(env, SECRET_ENV_KEYS));
     if (reportFormat === 'json') log(JSON.stringify({ ok: false, error: message }, null, 2));
     else log(`✖ ${message}`);
     return { code: 2, report: { ok: false, error: message } };
