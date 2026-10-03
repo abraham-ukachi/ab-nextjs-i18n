@@ -18,6 +18,8 @@ const NEXT_INTL_RANGE = createRequire(import.meta.url)('../package.json').peerDe
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), '..', 'templates');
 const STARTER_LOCALES = ['en', 'fr', 'es', 'ru'];
 const MIN_NEXT = [16, 3];
+/** Extensions Next.js accepts for proxy / middleware files. */
+const PROXY_EXTENSIONS = ['ts', 'js', 'mts', 'mjs'];
 
 export const INIT_HELP = `
 ${bold('ab-nextjs-i18n init')} - add i18n to a Next.js app (only creates missing files)
@@ -142,9 +144,10 @@ export async function runInit(flags = {}, io = {}) {
   plan.push({ path: join(i18nDir, 'navigation.ts'), contents: () => template('i18n/navigation.ts.tpl') });
   plan.push({ path: join(i18nDir, 'global.d.ts'), contents: () => template('i18n/global.d.ts.tpl') });
 
-  // proxy.ts: only when neither proxy.ts nor middleware.ts exists (root or src/).
-  const proxyCandidates = ['proxy.ts', 'proxy.js', 'src/proxy.ts', 'src/proxy.js'];
-  const middlewareCandidates = ['middleware.ts', 'middleware.js', 'src/middleware.ts', 'src/middleware.js'];
+  // proxy.ts: only when no proxy / middleware file exists (any extension, root or src/).
+  const candidates = (name) => ['', 'src/'].flatMap((dir) => PROXY_EXTENSIONS.map((ext) => `${dir}${name}.${ext}`));
+  const proxyCandidates = candidates('proxy');
+  const middlewareCandidates = candidates('middleware');
   const existingProxy = (await Promise.all(proxyCandidates.map(async (p) => ((await exists(join(root, p))) ? p : null)))).find(Boolean);
   const existingMiddleware = (await Promise.all(middlewareCandidates.map(async (p) => ((await exists(join(root, p))) ? p : null)))).find(Boolean);
   const proxyPath = join(root, base, 'proxy.ts');

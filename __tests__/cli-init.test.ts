@@ -104,6 +104,18 @@ describe('ab-nextjs-i18n init', { timeout: 30_000 }, () => {
     expect(stdout).toMatch(/createAbI18nProxy\(abI18nConfig, \{ onRequest/);
   });
 
+  it('detects proxy.mjs / proxy.mts and middleware.mjs (root and src/)', async () => {
+    for (const file of ['proxy.mjs', 'proxy.mts', 'src/proxy.mjs', 'middleware.mjs']) {
+      const dir = await app({ files: { [file]: 'export default function proxy() {}\n' } });
+      const { code, stdout } = await runCli(['init', '--json'], dir);
+      expect(code).toBe(0);
+      const report = JSON.parse(stdout);
+      expect(existsSync(join(dir, 'proxy.ts')), file).toBe(false);
+      expect(report.files.find((f: any) => /(^|\/)proxy\.ts$/.test(f.path)), file).toMatchObject({ status: 'skipped', reason: `${file} exists` });
+      expect(report.nextSteps.join('\n')).toMatch(file.includes('middleware') ? /middleware-to-proxy/ : /createAbI18nProxy/);
+    }
+  });
+
   it('writes nothing with --dry-run', async () => {
     const dir = await app();
     const before = await snapshot(dir);

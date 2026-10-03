@@ -86,7 +86,7 @@ npx ab-nextjs-i18n init
 | 2 | **i18n/request.ts** | next-intl request config (`createAbRequestConfig`) |
 | 3 | **i18n/navigation.ts** | `AbLink`, `redirect`, `usePathname`, `useRouter`, `getPathname` |
 | 4 | **i18n/global.d.ts** | Typed keys and locales (next-intl `AppConfig`) |
-| 5 | **proxy.ts** | Locale detection, redirects and the cookie (skipped when `proxy.ts` / `middleware.ts` exists) |
+| 5 | **proxy.ts** | Locale detection and redirects, reads (never writes) the locale cookie (skipped when a `proxy` / `middleware` file exists: `.ts`, `.js`, `.mts`, `.mjs`, root or `src/`) |
 | 6 | **messages/{en,fr,es,ru}.json** | 4 demo messages to replace or extend (see below) |
 | 7 | **messages/.ab-i18n-glossary.json** | Terms that are never translated (`abElements`) |
 
