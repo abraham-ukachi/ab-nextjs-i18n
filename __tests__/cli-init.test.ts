@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { makeTempApp, removeDir, runCli, snapshot } from './helpers';
 
@@ -45,6 +45,26 @@ describe('ab-nextjs-i18n init', { timeout: 30_000 }, () => {
     // init never touches package.json / next.config / tsconfig
     expect(JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')).dependencies).toEqual({ next: '16.3.4' });
     expect(existsSync(join(dir, 'next.config.ts'))).toBe(false);
+  });
+
+  it('tells the app to install ab-nextjs-i18n and its next-intl peer with the detected package manager', async () => {
+    const pnpmApp = await app({ files: { 'pnpm-lock.yaml': "lockfileVersion: '9.0'\n" } });
+    const pnpmSteps = JSON.parse((await runCli(['init', '--json', '--dry-run'], pnpmApp)).stdout).nextSteps.join('\n');
+    expect(pnpmSteps).toContain('pnpm add ab-nextjs-i18n next-intl');
+    expect(pnpmSteps).toContain('next-intl ^4.14.9 is a peer dependency');
+
+    const npmApp = await app({ files: { 'package-lock.json': '{}\n' } });
+    const npmSteps = JSON.parse((await runCli(['init', '--json', '--dry-run'], npmApp)).stdout).nextSteps.join('\n');
+    expect(npmSteps).toContain('npm i ab-nextjs-i18n next-intl');
+
+    // already installed: nothing to add for next-intl, only the missing package
+    const withPeer = await app({ files: { 'pnpm-lock.yaml': "lockfileVersion: '9.0'\n" } });
+    const pkgPath = join(withPeer, 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf8'));
+    writeFileSync(pkgPath, JSON.stringify({ ...pkg, dependencies: { ...pkg.dependencies, 'next-intl': '^4.14.9' } }));
+    const peerSteps = JSON.parse((await runCli(['init', '--json', '--dry-run'], withPeer)).stdout).nextSteps.join('\n');
+    expect(peerSteps).toContain('pnpm add ab-nextjs-i18n\n');
+    expect(peerSteps).not.toMatch(/add[^\n]*next-intl/);
   });
 
   it('changes nothing when run twice (byte-identical, everything skipped)', async () => {

@@ -12,8 +12,8 @@ import { exists, formatJson, readJson, writeFileIfMissing } from './lib/fs-safe.
 import { addCommand, detectPackageManager } from './lib/pm-detect.mjs';
 import { bold, cyan, dim, green, splitList, table, yellow } from './lib/output.mjs';
 
-/** The next-intl range this package depends on (suggested to the app for typed keys). */
-const NEXT_INTL_RANGE = createRequire(import.meta.url)('../package.json').dependencies['next-intl'];
+/** The next-intl range ab-nextjs-i18n expects as a peer dependency (the app installs it). */
+const NEXT_INTL_RANGE = createRequire(import.meta.url)('../package.json').peerDependencies['next-intl'];
 
 const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), '..', 'templates');
 const STARTER_LOCALES = ['en', 'fr', 'es', 'ru'];
@@ -180,11 +180,14 @@ export async function runInit(flags = {}, io = {}) {
   const hasDependency = Boolean(pkg?.dependencies?.['ab-nextjs-i18n'] ?? pkg?.devDependencies?.['ab-nextjs-i18n']);
   const configImport = `./${useSrc ? 'src/' : ''}i18n/config`;
   const nextSteps = [];
-  if (!hasDependency) nextSteps.push(`Install the package: ${addCommand(packageManager, 'ab-nextjs-i18n')}`);
   const hasNextIntl = Boolean(pkg?.dependencies?.['next-intl'] ?? pkg?.devDependencies?.['next-intl']);
-  if (!hasNextIntl) {
-    nextSteps.push(`Add next-intl to your own dependencies too (same range as ab-nextjs-i18n), so TypeScript can resolve it for the typed keys in i18n/global.d.ts (required with pnpm's strict node_modules):
-    ${addCommand(packageManager, `"next-intl@${NEXT_INTL_RANGE}"`)}`);
+  // next-intl is a peer dependency: the app owns it (one instance for the app, the
+  // typed keys in i18n/global.d.ts and ab-nextjs-i18n).
+  const toInstall = [...(hasDependency ? [] : ['ab-nextjs-i18n']), ...(hasNextIntl ? [] : ['next-intl'])];
+  if (toInstall.length > 0) {
+    const peerNote = hasNextIntl ? '' : ` (next-intl ${NEXT_INTL_RANGE} is a peer dependency: your app installs it itself)`;
+    nextSteps.push(`Install ${toInstall.join(' and ')}${peerNote}:
+    ${addCommand(packageManager, toInstall)}`);
   }
   nextSteps.push(`Wrap next.config with the plugin (it also adds ab-nextjs-i18n to transpilePackages):
     import { withAbI18n } from 'ab-nextjs-i18n/plugin';

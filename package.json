@@ -92,11 +92,11 @@
   },
   "license": "MIT",
   "dependencies": {
-    "next-intl": "^4.14.9",
     "icu-minify": "^4.14.9"
   },
   "peerDependencies": {
     "next": "^16.3.4",
+    "next-intl": "^4.14.9",
     "react": "^19",
     "react-dom": "^19"
   },
@@ -106,6 +106,7 @@
     "eslint": "^9.39.0",
     "eslint-config-next": "16.3.4",
     "next": "16.3.4",
+    "next-intl": "^4.14.9",
     "react": "^19",
     "react-dom": "^19",
     "typescript": "^5",

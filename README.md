@@ -48,18 +48,22 @@
 #### npm
 
 ```bash
-npm i ab-nextjs-i18n
+npm i ab-nextjs-i18n next-intl
 ```
 
 #### pnpm
 
 ```bash
-pnpm install ab-nextjs-i18n
+pnpm add ab-nextjs-i18n next-intl
 ```
 
-> NOTE: `next-intl` comes with this package. `next` (>= 16.3.4), `react` and `react-dom` (19) are peer dependencies.
-> For the typed keys (and to import `next-intl` yourself), also add it to your app with the same range:
-> `pnpm add "next-intl@^4.14.9"` (required with pnpm's strict `node_modules`; `init` reminds you).
+> IMPORTANT: `next-intl` (`^4.14.9`) is a **peer dependency**: install it in your app next to `ab-nextjs-i18n`.
+> Your app, the typed keys in `i18n/global.d.ts` and `ab-nextjs-i18n` then share one next-intl instance.
+> If you forget it, `init` reminds you with your package manager's command. With pnpm's default `autoInstallPeers: true`
+> the missing peer is installed silently for `ab-nextjs-i18n` only: your app can't import `next-intl` and the typed keys stop working.
+> With `autoInstallPeers: false` pnpm warns (`pnpm peers check`), and `strictPeerDependencies: true` fails the install.
+
+> NOTE: `next` (>= 16.3.4), `react` and `react-dom` (19) are peer dependencies too. `icu-minify` (used by the CLI) comes with this package.
 > The library entries ship as TypeScript (like every Ab package), so add `ab-nextjs-i18n` to `transpilePackages`
 > (`withAbI18n` does it for you).
 
@@ -70,7 +74,7 @@ pnpm install ab-nextjs-i18n
 npx ab-nextjs-i18n init
 ```
 
-`init` **only creates missing files** (there is no `--force`) and never edits `next.config`, `package.json` or `tsconfig.json`: it prints the next steps instead.
+`init` **only creates missing files** (there is no `--force`) and never edits `next.config`, `package.json` or `tsconfig.json`: it prints the next steps instead, starting with the install command for anything missing (e.g. `pnpm add ab-nextjs-i18n next-intl`).
 
 | No. | File | What it is |
 |:----|:-----|:-----------|
@@ -293,7 +297,8 @@ export default function sitemap() {
 
 ## Typed messages
 
-`init` writes `i18n/global.d.ts`, which types next-intl's `AppConfig` from your source messages and locales:
+`init` writes `i18n/global.d.ts`, which types next-intl's `AppConfig` from your source messages and locales.
+It augments the `next-intl` module, so `next-intl` must be your app's own dependency (it's a peer of `ab-nextjs-i18n`); otherwise TypeScript can't see it and wrong keys aren't caught:
 
 ```ts
 const t = useAbTranslations('Common');
@@ -374,11 +379,12 @@ export default {
 
 ## Migrating from next-intl / LYD
 
-1. Run `npx ab-nextjs-i18n init --dry-run` to see what would be created; existing files are never touched.
-2. Move your locales into `i18n/config.ts`, and swap `next-intl/plugin` for `withAbI18n`.
-3. If you have a `middleware.ts`, rename it to `proxy.ts` (`npx @next/codemod@canary middleware-to-proxy .`) and use `createAbI18nProxy`.
-4. LYD messages: `npx ab-nextjs-i18n migrate` then `--write` to turn `(x)` into `{x}`, then `check`.
-5. Use short locale codes (`en`, `fr`, `es`, `ru`).
+1. Keep `next-intl` in your dependencies (it's a peer of `ab-nextjs-i18n`, `^4.14.9`) and add `ab-nextjs-i18n` next to it.
+2. Run `npx ab-nextjs-i18n init --dry-run` to see what would be created; existing files are never touched.
+3. Move your locales into `i18n/config.ts`, and swap `next-intl/plugin` for `withAbI18n`.
+4. If you have a `middleware.ts`, rename it to `proxy.ts` (`npx @next/codemod@canary middleware-to-proxy .`) and use `createAbI18nProxy`.
+5. LYD messages: `npx ab-nextjs-i18n migrate` then `--write` to turn `(x)` into `{x}`, then `check`.
+6. Use short locale codes (`en`, `fr`, `es`, `ru`).
 
 
 ## Publishing

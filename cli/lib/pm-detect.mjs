@@ -29,8 +29,10 @@ export async function detectPackageManager(root, pkg, userAgent = process.env.np
   return 'npm';
 }
 
-export function addCommand(manager, pkgName) {
-  return { pnpm: `pnpm add ${pkgName}`, yarn: `yarn add ${pkgName}`, bun: `bun add ${pkgName}`, npm: `npm i ${pkgName}` }[manager];
+/** `pnpm add a b`, `npm i a b`... (`pkgNames` is a name or a list of names). */
+export function addCommand(manager, pkgNames) {
+  const names = [pkgNames].flat().join(' ');
+  return { pnpm: `pnpm add ${names}`, yarn: `yarn add ${names}`, bun: `bun add ${names}`, npm: `npm i ${names}` }[manager];
 }
 
 export function execCommand(manager, bin) {

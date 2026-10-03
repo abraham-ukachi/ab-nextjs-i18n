@@ -13,7 +13,13 @@ describe('ab-nextjs-i18n package smoke', () => {
     expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/);
     expect(pkg.type).toBe('module');
     expect(pkg.peerDependencies.next).toBe('^16.3.4');
-    expect(pkg.dependencies['next-intl']).toMatch(/^\^4\./);
+    // next-intl is a peer (the app owns the single instance), kept in devDependencies for tests
+    expect(pkg.peerDependencies['next-intl']).toBe('^4.14.9');
+    expect(pkg.devDependencies['next-intl']).toBe('^4.14.9');
+    expect(pkg.dependencies['next-intl']).toBeUndefined();
+    // icu-minify stays a direct dependency: the CLI imports it at runtime
+    expect(Object.keys(pkg.dependencies)).toEqual(['icu-minify']);
+    expect(pkg.dependencies['icu-minify']).toBe('^4.14.9');
     expect(pkg.engines.node).toBe('>=22.18');
     expect(pkg.bin['ab-nextjs-i18n']).toBe('./bin/ab-nextjs-i18n.mjs');
   });
