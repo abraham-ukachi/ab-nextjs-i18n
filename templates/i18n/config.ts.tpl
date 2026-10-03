@@ -7,7 +7,7 @@ export const abI18nConfig = defineAbI18n({
   defaultLocale: '{{DEFAULT_LOCALE}}',
   // 'as-needed': the default locale lives at `/`, the others at `/fr`, `/es`...
   localePrefix: '{{PREFIX}}',
-  // Only written when the user picks a locale (switchLocale / setAbLocaleCookie), for maxAge (one year).
+  // Only written when the user picks a locale (switchLocale / createAbLocaleCookieAction), for maxAge (one year).
   localeCookie: { name: 'NEXT_LOCALE', maxAge: 60 * 60 * 24 * 365 },
   messagesDir: '{{MESSAGES_DIR}}',
 });

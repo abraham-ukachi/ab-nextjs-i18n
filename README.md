@@ -136,7 +136,7 @@ export const abI18nConfig = defineAbI18n({
   defaultLocale: 'en',
   // 'as-needed': the default locale lives at `/`, the others at `/fr`, `/es`...
   localePrefix: 'as-needed',
-  // Only written when the user picks a locale (switchLocale / setAbLocaleCookie), for maxAge (one year).
+  // Only written when the user picks a locale (switchLocale / createAbLocaleCookieAction), for maxAge (one year).
   localeCookie: { name: 'NEXT_LOCALE', maxAge: 60 * 60 * 24 * 365 },
   messagesDir: 'messages',
 });
@@ -486,16 +486,19 @@ export async function saveLanguage(formData: FormData) {
 ```tsx
 // app/[locale]/settings/page.tsx
 import { getAbLocaleLabel } from 'ab-nextjs-i18n';
+import { getAbLocale } from 'ab-nextjs-i18n/server';
 import abI18nConfig from '@/i18n/config';
 import { saveLanguage } from './actions';
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const locale = await getAbLocale(); // the current locale, preselected
+
   return (
     <form action={saveLanguage}>
-      <select name="locale" defaultValue={abI18nConfig.defaultLocale}>
-        {abI18nConfig.locales.map((locale) => (
-          <option key={locale} value={locale}>
-            {getAbLocaleLabel(locale)}
+      <select name="locale" defaultValue={locale}>
+        {abI18nConfig.locales.map((item) => (
+          <option key={item} value={item}>
+            {getAbLocaleLabel(item)}
           </option>
         ))}
       </select>
@@ -642,13 +645,18 @@ export function Nav() {
     <nav>
       <AbLink href="/">Home</AbLink>
       <AbLink href="/cart">Cart</AbLink>
-      <AbLink href={pathname} locale="fr">FR</AbLink>
       <button onClick={() => router.push('/cart')}>Open cart</button>
+      {/* changing the locale here writes a *session* NEXT_LOCALE cookie (see below) */}
+      <AbLink href={pathname} locale="fr">FR</AbLink>
       <button onClick={() => router.replace(pathname, { locale: 'es' })}>ES</button>
     </nav>
   );
 }
 ```
+
+> WARNING: `<AbLink locale="fr">` and `router.push` / `router.replace(…, { locale })` to *another* locale write `NEXT_LOCALE` in the browser (next-intl syncs it on click, through `document.cookie`) as a **session cookie** (`path=/; sameSite=lax`, no `max-age`). It replaces a saved one-year pick, which is gone once the browser session ends. Use them for links that change the locale *for this visit*; for language menus use `switchLocale` (a one-year pick) or the Server Action above. The proxy never writes the cookie, and server `redirect` / `getPathname` don't either.
+
+> NOTE: With `as-needed`, unprefixed URLs (`/`, `/about`) mean "detect": the proxy picks `NEXT_LOCALE`, then `Accept-Language`, then `defaultLocale`. Since the proxy never writes the cookie, opening `/en/about` redirects to `/about`, which then follows the cookie or the browser language (a French browser without a cookie lands on `/fr/about`). Switch to the default locale with `switchLocale('en')` or `<AbLink locale="en">` (both write the cookie before navigating), or use `localePrefix: 'always'` if every locale must be reachable from its URL alone.
 
 `getPathname` and `redirect` on the server:
 
@@ -697,25 +705,37 @@ export const config = {
 };
 ```
 
-Composed with an auth guard (`onRequest` runs first, `onResponse` after the i18n proxy):
+Composed with an auth guard. `onRequest` runs first: a response it returns is sent as is, and **`onResponse` is skipped for it** (add your headers there yourself). Otherwise the i18n proxy runs, then `onResponse`. The login redirect keeps the visitor's locale: URL prefix (`getAbLocaleFromPathname`) ?? saved cookie ?? `defaultLocale`:
 
 ```ts
 // proxy.ts
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { createAbI18nProxy } from 'ab-nextjs-i18n/proxy';
-import { localizeAbPathname, stripAbLocalePrefix } from 'ab-nextjs-i18n/config';
+import { getAbLocaleFromPathname, isAbLocale, localizeAbPathname, stripAbLocalePrefix } from 'ab-nextjs-i18n/config';
 import abI18nConfig from './i18n/config';
 
+// The locale of a request: URL prefix ?? saved pick (validated) ?? default locale.
+function requestLocale(request: NextRequest) {
+  const { localeCookie } = abI18nConfig;
+  const saved = localeCookie ? request.cookies.get(localeCookie.name)?.value : undefined;
+  return (
+    getAbLocaleFromPathname(request.nextUrl.pathname, abI18nConfig) ??
+    (isAbLocale(abI18nConfig, saved) ? saved : undefined) ??
+    abI18nConfig.defaultLocale
+  );
+}
+
 export default createAbI18nProxy(abI18nConfig, {
-  // 1. runs first: send signed-out visitors of /account to the (localized) login page
+  // 1. runs first: send signed-out visitors of /account to the (localized) login page.
+  //    A response returned here is sent as is: no i18n proxy, no onResponse.
   onRequest(request) {
     const path = stripAbLocalePrefix(request.nextUrl.pathname, abI18nConfig);
     if (path.startsWith('/account') && !request.cookies.has('session')) {
-      const locale = abI18nConfig.locales.find((item) => request.nextUrl.pathname.startsWith(`/${item}/`)) ?? abI18nConfig.defaultLocale;
-      return NextResponse.redirect(new URL(localizeAbPathname('/login', locale, abI18nConfig), request.url));
+      return NextResponse.redirect(new URL(localizeAbPathname('/login', requestLocale(request), abI18nConfig), request.url));
     }
   },
-  // 2. runs after the i18n proxy: tweak the response
+  // 2. runs after the i18n proxy (skipped when onRequest returned a response): tweak the response
   onResponse(_request, response) {
     response.headers.set('x-frame-options', 'DENY');
   },
@@ -959,7 +979,7 @@ name: i18n
 
 on:
   pull_request:
-    paths: ['messages/**']
+    paths: ['messages/**', 'i18n/**']
 
 jobs:
   check:
@@ -967,6 +987,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          version: 11.28.3 # or drop `with:` when package.json has a "packageManager" field
       - uses: actions/setup-node@v4
         with:
           node-version: 24
