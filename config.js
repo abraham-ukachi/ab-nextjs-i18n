@@ -125,9 +125,10 @@ export function isAbLocale(config, value) {
 /**
  * Converts an Ab config into a next-intl routing config (pass it to `defineRouting`).
  *
- * The routing cookie is session-only (no `maxAge`), like next-intl v4's default.
- * `config.localeCookie.maxAge` is only used when the user explicitly picks a
- * locale (`switchLocale(next, { persist: true })` / `setAbLocaleCookie`).
+ * The routing cookie (no `maxAge`) is what next-intl *reads* to pick the locale of
+ * unprefixed URLs. `createAbI18nProxy` strips the cookie next-intl writes on plain
+ * visits, so only an explicit pick writes it: `switchLocale` (one year by default) and
+ * the `setAbLocaleCookie` server action (`config.localeCookie.maxAge`).
  *
  * @param { object } config
  * @returns { object }

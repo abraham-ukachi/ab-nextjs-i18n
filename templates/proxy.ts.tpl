@@ -1,4 +1,4 @@
-// Next.js 16 proxy (formerly middleware): locale detection, redirects and the NEXT_LOCALE cookie.
+// Next.js 16 proxy (formerly middleware): locale detection and redirects (it reads NEXT_LOCALE, never writes it).
 // To add an auth guard, pass `onRequest` (see the ab-nextjs-i18n README, "Proxy (with auth)").
 import { createAbI18nProxy } from 'ab-nextjs-i18n/proxy';
 import abI18nConfig from '{{CONFIG_IMPORT}}';

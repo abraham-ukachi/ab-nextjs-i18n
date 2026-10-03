@@ -35,7 +35,7 @@
 🌍 This is a thin, opinionated i18n layer over [next-intl](https://next-intl.dev) with an **Ab CLI** (`init`, `translate`, `check`, `migrate`), created by [Abraham Ukachi](https://github.com/abraham-ukachi), and optimized for [Next.js](https://nextjs.org/docs) App Router applications 😎.
 
 - Locales `en` (default, at `/`), `fr`, `es`, `ru` (at `/fr`, `/es`, `/ru`): `localePrefix: 'as-needed'`.
-- `NEXT_LOCALE` cookie: session-only until the user picks a locale, then one year.
+- `NEXT_LOCALE` cookie: only written when the user picks a locale (`switchLocale`, or the `setAbLocaleCookie` server action), for one year by default. Plain visits never set it, so a saved pick is never overwritten.
 - Typed message keys out of the box, ICU messages (`{name}`), JSON files only.
 - No UI: headless hooks only (`AbLocaleSwitcher` will live in `ab-nextjs-components`).
 
@@ -136,7 +136,7 @@ export const abI18nConfig = defineAbI18n({
   defaultLocale: 'en',
   // 'as-needed': the default locale lives at `/`, the others at `/fr`, `/es`...
   localePrefix: 'as-needed',
-  // Session cookie until the user picks a locale, then one year.
+  // Only written when the user picks a locale (switchLocale / setAbLocaleCookie), for maxAge (one year).
   localeCookie: { name: 'NEXT_LOCALE', maxAge: 60 * 60 * 24 * 365 },
   messagesDir: 'messages',
 });
@@ -673,11 +673,11 @@ export function requireUser(user: unknown, locale: 'en' | 'fr' | 'es' | 'ru') {
 
 ## Proxy (with auth)
 
-Next.js 16 calls `middleware.ts` **`proxy.ts`**. The one `init` writes: locale detection, redirects and the cookie.
+Next.js 16 calls `middleware.ts` **`proxy.ts`**. The one `init` writes: locale detection and redirects. It reads the `NEXT_LOCALE` cookie to pick the locale of unprefixed URLs, but never writes it: `createAbI18nProxy` strips the session cookie next-intl would set on plain visits (`/fr`), which would overwrite a saved pick.
 
 ```ts
 // proxy.ts
-// Next.js 16 proxy (formerly middleware): locale detection, redirects and the NEXT_LOCALE cookie.
+// Next.js 16 proxy (formerly middleware): locale detection and redirects (it reads NEXT_LOCALE, never writes it).
 // To add an auth guard, pass `onRequest` (see the ab-nextjs-i18n README, "Proxy (with auth)").
 import { createAbI18nProxy } from 'ab-nextjs-i18n/proxy';
 import abI18nConfig from './i18n/config';

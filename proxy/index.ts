@@ -5,6 +5,7 @@ import { defineRouting } from 'next-intl/routing';
 import type { NextRequest, NextResponse } from 'next/server';
 import { toAbRouting } from '../config';
 import type { AbI18nConfig } from '../config';
+import { stripSetCookie } from './strip-set-cookie';
 
 export type AbProxyResult = Response | NextResponse | undefined | null | void;
 
@@ -15,7 +16,10 @@ export interface AbI18nProxyOptions {
    * Never call React hooks or query a database here.
    */
   onRequest?: (request: NextRequest) => AbProxyResult | Promise<AbProxyResult>;
-  /** Runs after the i18n proxy, e.g. to add headers. Return a replacement response or nothing. */
+  /**
+   * Runs after the i18n proxy, e.g. to add headers. Return a replacement response or nothing.
+   * It's skipped when `onRequest` returned a response.
+   */
   onResponse?: (request: NextRequest, response: NextResponse) => AbProxyResult | Promise<AbProxyResult>;
 }
 
@@ -33,7 +37,9 @@ export function createAbI18nProxy<L extends string>(
   config: AbI18nConfig<L>,
   options: AbI18nProxyOptions = {},
 ): (request: NextRequest) => Promise<Response> {
+  // The routing still knows the cookie: next-intl reads it to pick the locale of `/`.
   const handleI18nRouting = createMiddleware(defineRouting(toAbRouting(config)));
+  const localeCookieName = config.localeCookie ? config.localeCookie.name : null;
 
   return async function abI18nProxy(request: NextRequest): Promise<Response> {
     if (options.onRequest) {
@@ -41,7 +47,10 @@ export function createAbI18nProxy<L extends string>(
       if (early) return early;
     }
 
-    const response = handleI18nRouting(request);
+    // next-intl syncs the locale cookie on plain visits (a session cookie that would
+    // overwrite the user's 1-year pick). Only `switchLocale` / `setAbLocaleCookie` write it.
+    const routed = handleI18nRouting(request);
+    const response = (localeCookieName ? stripSetCookie(routed, localeCookieName) : routed) as NextResponse;
 
     if (options.onResponse) {
       const replaced = await options.onResponse(request, response);
