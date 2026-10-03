@@ -9,8 +9,8 @@ export { getAbAlternates } from './ab-alternates';
 export type { AbAlternates, AbAlternatesOptions } from './ab-alternates';
 export { getAbSitemapEntries } from './ab-sitemap';
 export type { AbSitemapPath } from './ab-sitemap';
-export { setAbLocaleCookie } from './ab-locale-cookie';
-export type { AbLocaleCookieOptions } from './ab-locale-cookie';
+export { createAbLocaleCookieAction } from './ab-locale-cookie';
+export type { AbLocaleCookieAction } from './ab-locale-cookie';
 export { setRequestLocale as setAbRequestLocale } from 'next-intl/server';
 
 

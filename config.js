@@ -128,7 +128,7 @@ export function isAbLocale(config, value) {
  * The routing cookie (no `maxAge`) is what next-intl *reads* to pick the locale of
  * unprefixed URLs. `createAbI18nProxy` strips the cookie next-intl writes on plain
  * visits, so only an explicit pick writes it: `switchLocale` (one year by default) and
- * the `setAbLocaleCookie` server action (`config.localeCookie.maxAge`).
+ * the action from `createAbLocaleCookieAction` (`config.localeCookie.maxAge`).
  *
  * @param { object } config
  * @returns { object }
@@ -218,10 +218,11 @@ export function getAbLocaleLabel(locale, displayLocale, overrides) {
 /**
  * Serializes the locale cookie for `document.cookie`.
  * `persist: true` adds `max-age` (one year by default); otherwise it's a session cookie.
+ * `secure: true` adds `Secure` (e.g. `location.protocol === 'https:'`).
  *
  * @param { string } locale
  * @param { object } config
- * @param { { persist?: boolean, path?: string } } [options]
+ * @param { { persist?: boolean, path?: string, secure?: boolean } } [options]
  * @returns { string | null } `null` when the cookie is disabled
  */
 export function serializeAbLocaleCookie(locale, config, options = {}) {
@@ -229,5 +230,6 @@ export function serializeAbLocaleCookie(locale, config, options = {}) {
   if (!isAbLocaleTag(locale)) throw new Error(`[ab-nextjs-i18n] Invalid locale "${locale}".`);
   const parts = [`${config.localeCookie.name}=${locale}`, `path=${options.path ?? '/'}`, 'SameSite=Lax'];
   if (options.persist) parts.push(`max-age=${config.localeCookie.maxAge}`);
+  if (options.secure) parts.push('Secure');
   return parts.join('; ');
 }

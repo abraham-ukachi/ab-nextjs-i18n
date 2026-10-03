@@ -97,5 +97,5 @@ export declare function getAbLocaleLabel(
 export declare function serializeAbLocaleCookie(
   locale: string,
   config: AbI18nConfig,
-  options?: { persist?: boolean; path?: string },
+  options?: { persist?: boolean; path?: string; secure?: boolean },
 ): string | null;

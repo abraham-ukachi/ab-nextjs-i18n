@@ -48,7 +48,8 @@ export function createAbI18nProxy<L extends string>(
     }
 
     // next-intl syncs the locale cookie on plain visits (a session cookie that would
-    // overwrite the user's 1-year pick). Only `switchLocale` / `setAbLocaleCookie` write it.
+    // overwrite the user's 1-year pick). Only `switchLocale` and the
+    // `createAbLocaleCookieAction` action write it.
     const routed = handleI18nRouting(request);
     const response = (localeCookieName ? stripSetCookie(routed, localeCookieName) : routed) as NextResponse;
 

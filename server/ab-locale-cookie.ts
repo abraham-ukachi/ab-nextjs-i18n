@@ -1,35 +1,31 @@
-'use server';
-
-// ===== AB LOCALE COOKIE (Server Action) ===== //
+// ===== AB LOCALE COOKIE ACTION ===== //
 
 import { cookies } from 'next/headers';
+import { isAbLocale } from '../config';
+import type { AbI18nConfig } from '../config';
 
-export interface AbLocaleCookieOptions {
-  /** Defaults to `NEXT_LOCALE`. */
-  name?: string;
-  /** Defaults to one year (31536000 s). */
-  maxAge?: number;
-  /** When given, `locale` must be one of these. */
-  locales?: readonly string[];
-}
-
-const LOCALE_PATTERN = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
-const NAME_PATTERN = /^[A-Za-z0-9_-]+$/;
+/** The action `createAbLocaleCookieAction` returns: saves an explicit locale pick. */
+export type AbLocaleCookieAction = (locale: string) => Promise<void>;
 
 
 /**
- * Server Action: persists the user's explicit locale pick (1 year by default),
- * e.g. after login from `user_settings.locale_code`.
+ * Creates the function that saves the user's explicit locale pick in the locale cookie,
+ * bound to your config: the locale must be one of `config.locales`, and the cookie uses
+ * `config.localeCookie` (`name`, `maxAge`: one year by default), `path: '/'`,
+ * `sameSite: 'lax'` and `secure` in production. Callers can't change any of that.
+ *
+ * Call it from your own `'use server'` file (a Server Action) or a Route Handler.
  */
-export async function setAbLocaleCookie(locale: string, options: AbLocaleCookieOptions = {}): Promise<void> {
-  const name = options.name ?? 'NEXT_LOCALE';
-  const maxAge = options.maxAge ?? 60 * 60 * 24 * 365;
+export function createAbLocaleCookieAction<L extends string>(config: AbI18nConfig<L>): AbLocaleCookieAction {
+  const { localeCookie } = config;
+  if (!localeCookie) throw new Error('[ab-nextjs-i18n] `localeCookie` is disabled in your config.');
+  const { name, maxAge } = localeCookie;
 
-  if (!LOCALE_PATTERN.test(String(locale))) throw new Error(`[ab-nextjs-i18n] Invalid locale "${locale}".`);
-  if (options.locales && !options.locales.includes(locale)) throw new Error(`[ab-nextjs-i18n] Unsupported locale "${locale}".`);
-  if (!NAME_PATTERN.test(name)) throw new Error(`[ab-nextjs-i18n] Invalid cookie name "${name}".`);
-  if (!Number.isInteger(maxAge) || maxAge <= 0) throw new Error('[ab-nextjs-i18n] `maxAge` must be a positive integer.');
-
-  const store = await cookies();
-  store.set(name, locale, { path: '/', sameSite: 'lax', maxAge });
+  return async function setAbLocaleCookie(locale: string): Promise<void> {
+    if (!isAbLocale(config, locale)) {
+      throw new Error(`[ab-nextjs-i18n] Unsupported locale "${String(locale)}" (locales: ${config.locales.join(', ')}).`);
+    }
+    const store = await cookies();
+    store.set(name, locale, { path: '/', sameSite: 'lax', maxAge, secure: process.env.NODE_ENV === 'production' });
+  };
 }

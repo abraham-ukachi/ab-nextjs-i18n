@@ -35,7 +35,7 @@
 🌍 This is a thin, opinionated i18n layer over [next-intl](https://next-intl.dev) with an **Ab CLI** (`init`, `translate`, `check`, `migrate`), created by [Abraham Ukachi](https://github.com/abraham-ukachi), and optimized for [Next.js](https://nextjs.org/docs) App Router applications 😎.
 
 - Locales `en` (default, at `/`), `fr`, `es`, `ru` (at `/fr`, `/es`, `/ru`): `localePrefix: 'as-needed'`.
-- `NEXT_LOCALE` cookie: only written when the user picks a locale (`switchLocale`, or the `setAbLocaleCookie` server action), for one year by default. Plain visits never set it, so a saved pick is never overwritten.
+- `NEXT_LOCALE` cookie: only written when the user picks a locale (`switchLocale`, or a server action made with `createAbLocaleCookieAction`), for one year by default. Plain visits never set it, so a saved pick is never overwritten.
 - Typed message keys out of the box, ICU messages (`{name}`), JSON files only.
 - No UI: headless hooks only (`AbLocaleSwitcher` will live in `ab-nextjs-components`).
 
@@ -156,7 +156,7 @@ export const abI18nConfig = defineAbI18n({
   locales: ['en', 'fr', 'de', 'pt-BR'],
   defaultLocale: 'en',
   localePrefix: 'always', // every locale in the URL: /en, /fr, /de, /pt-BR
-  localeCookie: { name: 'APP_LOCALE', maxAge: 60 * 60 * 24 * 180 }, // 6 months once picked
+  localeCookie: { name: 'APP_LOCALE', maxAge: 60 * 60 * 24 * 180 }, // switchLocale + createAbLocaleCookieAction write it, for 6 months
   messagesDir: 'locales',
   localeLabels: { 'pt-BR': 'Português (BR)' }, // override the Intl.DisplayNames label
 });
@@ -406,7 +406,7 @@ A list of all the supported **server** helpers and their current status:
 | 7 | *`generateAbStaticParams`* | **server/index.ts** | [Done](./server/index.ts) |
 | 8 | *`getAbAlternates`* | **server/ab-alternates.ts** | [Done](./server/ab-alternates.ts) |
 | 9 | *`getAbSitemapEntries`* | **server/ab-sitemap.ts** | [Done](./server/ab-sitemap.ts) |
-| 10 | *`setAbLocaleCookie`* | **server/ab-locale-cookie.ts** | [Done](./server/ab-locale-cookie.ts) |
+| 10 | *`createAbLocaleCookieAction`* | **server/ab-locale-cookie.ts** | [Done](./server/ab-locale-cookie.ts) |
 | 11 | *`createAbI18nProxy`* | **proxy/index.ts** | [Done](./proxy/index.ts) |
 | 12 | *`withAbI18n`* | **plugin.js** | [Done](./plugin.js) |
 | 13 | *`defineAbI18n`* | **config.js** | [Done](./config.js) |
@@ -458,21 +458,24 @@ const t = await getAbTranslations({ locale, namespace: 'App' });
 
 ### Saving the user's choice (Server Action)
 
-`setAbLocaleCookie` stores the explicit pick for one year, then `redirect` (from `i18n/navigation`) sends the user to the new locale:
+`createAbLocaleCookieAction(config)` returns a function bound to your config: it only accepts `config.locales` and writes `config.localeCookie` (one year by default, `sameSite: 'lax'`, `path: '/'`, `secure` in production). Call it from your own `'use server'` file, then `redirect` (from `i18n/navigation`) to the new locale:
 
 ```ts
 // app/[locale]/settings/actions.ts
 'use server';
 
-import { setAbLocaleCookie } from 'ab-nextjs-i18n/server';
-import abI18nConfig from '@/i18n/config';
+import { createAbLocaleCookieAction } from 'ab-nextjs-i18n/server';
+import abI18nConfig, { type AppLocale } from '@/i18n/config';
 import { redirect } from '@/i18n/navigation';
+
+// Bound to your config: only abI18nConfig.locales, the cookie from abI18nConfig.localeCookie.
+const setAbLocaleCookie = createAbLocaleCookieAction(abI18nConfig);
 
 export async function saveLanguage(formData: FormData) {
   const locale = String(formData.get('locale'));
+  await setAbLocaleCookie(locale); // throws for unknown locales · 1-year NEXT_LOCALE cookie
   // await db.userSettings.update({ localeCode: locale }); // persist it for the user too
-  await setAbLocaleCookie(locale, { locales: abI18nConfig.locales }); // 1-year NEXT_LOCALE cookie
-  redirect({ href: '/settings', locale: locale as (typeof abI18nConfig.locales)[number] });
+  redirect({ href: '/settings', locale: locale as AppLocale });
 }
 ```
 
@@ -664,7 +667,7 @@ export function requireUser(user: unknown, locale: 'en' | 'fr' | 'es' | 'ru') {
 | No. | Entry | What's inside |
 |:----|:------|:--------------|
 | 1 | `ab-nextjs-i18n` | `AbI18nProvider`, client hooks, `getAbLocaleLabel`, `supportedApis` |
-| 2 | `ab-nextjs-i18n/server` | Request config, server getters, alternates, sitemap, `setAbLocaleCookie` |
+| 2 | `ab-nextjs-i18n/server` | Request config, server getters, alternates, sitemap, `createAbLocaleCookieAction` |
 | 3 | `ab-nextjs-i18n/proxy` | `createAbI18nProxy`, `AB_I18N_MATCHER` |
 | 4 | `ab-nextjs-i18n/navigation` | `createAbNavigation` |
 | 5 | `ab-nextjs-i18n/config` | `defineAbI18n`, `isAbLocale` and the other pure helpers (plain JS, also used by the CLI) |

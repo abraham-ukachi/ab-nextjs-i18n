@@ -54,7 +54,10 @@ export function useAbLocaleSwitch<L extends string = string>(): AbLocaleSwitch<L
         throw new Error(`[ab-nextjs-i18n] Unsupported locale "${next}" (locales: ${config.locales.join(', ')}).`);
       }
 
-      const cookie = serializeAbLocaleCookie(next, config, { persist: options.persist ?? true });
+      const cookie = serializeAbLocaleCookie(next, config, {
+        persist: options.persist ?? true,
+        secure: window.location.protocol === 'https:',
+      });
       if (cookie) document.cookie = cookie;
 
       // Without a cookie, an unprefixed URL could be re-detected (Accept-Language), so force the prefix.

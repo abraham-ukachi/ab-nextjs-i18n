@@ -85,6 +85,7 @@ describe('labels and cookies', () => {
   it('writes a session cookie unless the pick is persisted (1 year)', () => {
     expect(serializeAbLocaleCookie('fr', config)).toBe('NEXT_LOCALE=fr; path=/; SameSite=Lax');
     expect(serializeAbLocaleCookie('fr', config, { persist: true })).toBe('NEXT_LOCALE=fr; path=/; SameSite=Lax; max-age=31536000');
+    expect(serializeAbLocaleCookie('fr', config, { persist: true, secure: true })).toBe('NEXT_LOCALE=fr; path=/; SameSite=Lax; max-age=31536000; Secure');
     expect(serializeAbLocaleCookie('fr', defineAbI18n({ localeCookie: false }))).toBeNull();
     expect(() => serializeAbLocaleCookie('fr; evil=1', config)).toThrow(/Invalid locale/);
   });

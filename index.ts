@@ -48,7 +48,7 @@ export const supportedApis: AbI18nCatalogEntry[] = [
   { name: 'generateAbStaticParams', entry: 'ab-nextjs-i18n/server', file: 'server/index.ts', kind: 'function', status: 'Done' },
   { name: 'getAbAlternates', entry: 'ab-nextjs-i18n/server', file: 'server/ab-alternates.ts', kind: 'function', status: 'Done' },
   { name: 'getAbSitemapEntries', entry: 'ab-nextjs-i18n/server', file: 'server/ab-sitemap.ts', kind: 'function', status: 'Done' },
-  { name: 'setAbLocaleCookie', entry: 'ab-nextjs-i18n/server', file: 'server/ab-locale-cookie.ts', kind: 'server-action', status: 'Done' },
+  { name: 'createAbLocaleCookieAction', entry: 'ab-nextjs-i18n/server', file: 'server/ab-locale-cookie.ts', kind: 'function', status: 'Done' },
   // navigation, proxy & plugin
   { name: 'createAbNavigation', entry: 'ab-nextjs-i18n/navigation', file: 'navigation/index.ts', kind: 'function', status: 'Done' },
   { name: 'createAbI18nProxy', entry: 'ab-nextjs-i18n/proxy', file: 'proxy/index.ts', kind: 'function', status: 'Done' },
