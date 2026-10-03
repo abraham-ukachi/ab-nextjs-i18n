@@ -1,0 +1,15 @@
+allowBuilds:
+  esbuild: true
+  # Ship prebuilt native binaries through optionalDependencies, so their
+  # install/postinstall scripts aren't needed here.
+  '@parcel/watcher': false
+  '@swc/core': false
+  unrs-resolver: false
+
+# next-intl 4.14.9 (and its siblings) were released less than a day before
+# this package was scaffolded; pnpm 11's minimumReleaseAge would hold them back.
+minimumReleaseAgeExclude:
+  - icu-minify@4.14.9
+  - next-intl-swc-plugin-extractor@4.14.9
+  - next-intl@4.14.9
+  - use-intl@4.14.9

@@ -1,0 +1,114 @@
+{
+  "name": "ab-nextjs-i18n",
+  "version": "0.1.0",
+  "description": "🌍 A lightweight i18n toolkit (next-intl wrapper + Ab CLI) for abElements created by Abraham Ukachi, and optimized for Next.js applications 😎.",
+  "type": "module",
+  "main": "index.ts",
+  "types": "types/index.d.ts",
+  "bin": {
+    "ab-nextjs-i18n": "./bin/ab-nextjs-i18n.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./server": {
+      "types": "./server/index.ts",
+      "default": "./server/index.ts"
+    },
+    "./proxy": {
+      "types": "./proxy/index.ts",
+      "default": "./proxy/index.ts"
+    },
+    "./navigation": {
+      "types": "./navigation/index.ts",
+      "default": "./navigation/index.ts"
+    },
+    "./config": {
+      "types": "./config.d.ts",
+      "default": "./config.js"
+    },
+    "./plugin": {
+      "types": "./plugin.d.ts",
+      "default": "./plugin.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.ts",
+    "types",
+    "server",
+    "proxy",
+    "navigation",
+    "ab-i18n-provider",
+    "use-ab-locale-switch",
+    "hooks",
+    "config.js",
+    "config.d.ts",
+    "plugin.js",
+    "plugin.d.ts",
+    "bin",
+    "cli",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "homepage": "https://github.com/abraham-ukachi/ab-nextjs-i18n#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abraham-ukachi/ab-nextjs-i18n.git"
+  },
+  "bugs": {
+    "url": "https://github.com/abraham-ukachi/ab-nextjs-i18n/issues"
+  },
+  "packageManager": "pnpm@11.28.3",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "lint": "eslint . --fix",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.typed.json",
+    "check:publish": "node scripts/check-publish-deps.mjs",
+    "prepublishOnly": "node scripts/check-publish-deps.mjs"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "i18n",
+    "next-intl",
+    "translation",
+    "abraham",
+    "ukachi",
+    "ab-nextjs-i18n",
+    "ab-elements"
+  ],
+  "author": {
+    "name": "Abraham Ukachi",
+    "url": "https://github.com/abraham-ukachi",
+    "email": "abraham.ukachi@laplateforme.io"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "next-intl": "^4.14.9",
+    "icu-minify": "^4.14.9"
+  },
+  "peerDependencies": {
+    "next": "^16.3.4",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "eslint": "^9.39.0",
+    "eslint-config-next": "16.3.4",
+    "next": "16.3.4",
+    "react": "^19",
+    "react-dom": "^19",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}

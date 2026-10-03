@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "index.ts",
+    "server/**/*.ts",
+    "proxy/**/*.ts",
+    "navigation/**/*.ts",
+    "hooks/**/*.ts",
+    "ab-i18n-provider/**/*.tsx",
+    "use-ab-locale-switch/**/*.ts",
+    "types/**/*.d.ts",
+    "__tests__/types/typed-app-config.d.ts"
+  ]
+}
